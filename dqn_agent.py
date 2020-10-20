@@ -13,12 +13,20 @@ class DqnAgent:
     a state-action pair.
     """
 
-    def __init__(self):
-        self.q_net = self._build_dqn_model()
-        self.target_q_net = self._build_dqn_model()
+    def __init__(self, dim, action_num):
+        ''' Initilize the random agent
+
+        Args:
+            action_num (int): The size of the ouput action space
+        '''
+        self.use_raw = False
+        self.dim = dim
+        self.action_num = action_num
+        self.q_net = self._build_dqn_model(dim)
+        self.target_q_net = self._build_dqn_model(dim)
 
     @staticmethod
-    def _build_dqn_model():
+    def _build_dqn_model(dim):
         """
         Builds a deep neural net which predicts the Q values for all possible
         actions given a state. The input should have the shape of the state, and
@@ -28,11 +36,12 @@ class DqnAgent:
         :return: Q network
         """
         q_net = Sequential()
-        q_net.add(Dense(64, input_dim=4, activation='relu',
+        q_net.add(Dense(64, input_dim=dim, activation='relu',
                         kernel_initializer='he_uniform'))
-        q_net.add(Dense(32, activation='relu', kernel_initializer='he_uniform'))
+        q_net.add(Dense(32, activation='relu',
+                        kernel_initializer='he_uniform'))
         q_net.add(
-            Dense(2, activation='linear', kernel_initializer='he_uniform'))
+            Dense(1, activation='linear', kernel_initializer='he_uniform'))
         q_net.compile(optimizer=tf.optimizers.Adam(learning_rate=0.001),
                       loss='mse')
         return q_net
@@ -44,7 +53,8 @@ class DqnAgent:
         :param state: not used
         :return: action
         """
-        return np.random.randint(0, 2)
+        # todo see if this has to be changed
+        return np.random.randint(0, self.action_num)
 
     def collect_policy(self, state):
         """
@@ -54,21 +64,74 @@ class DqnAgent:
         :return: action
         """
         if np.random.random() < 0.05:
-            return self.random_policy(state)
+            return self.random_policy(state['legal_actions'])
         return self.policy(state)
 
-    def policy(self, state):
-        """
-        Takes a state from the game environment and returns an action that
-        has the highest Q value and should be taken as the next step.
+    def remove_illegal(self, action_probs, legal_actions):
+        ''' Remove illegal actions and normalize the
+            probability vector
 
-        :param state: the current game environment state
-        :return: an action
-        """
-        state_input = tf.convert_to_tensor(state[None, :], dtype=tf.float32)
+        Args:
+            action_probs (numpy.array): A 1 dimention numpy array.
+            legal_actions (list): A list of indices of legal actions.
+
+        Returns:
+            probd (numpy.array): A normalized vector without legal actions.
+        '''
+        probs = np.zeros(self.action_num)
+        # todo access predicted actions and replace them in probs
+        probs[legal_actions] = action_probs[legal_actions]
+        if np.sum(probs) == 0:
+            probs[legal_actions] = 1 / len(legal_actions)
+        else:
+            probs /= sum(probs)
+        return probs
+
+    def step(self, state):
+        ''' Predict the action for generating training data
+
+        Args:
+            state (numpy.array): current state
+
+        Returns:
+            action (int): an action id
+        '''
+        # print(f"state[obs]:{type(state['obs'])}:{state['obs']}")
+        # print(f"state[legal_actions]:{state['legal_actions']}")
+        # A = self.predict(state['obs'])
+        # A = remove_illegal(A, state['legal_actions'])
+        # action = np.random.choice(np.arange(len(A)), p=A)
+        # return action
+        state_input = tf.convert_to_tensor(
+            state['obs'], dtype=tf.float32)
         action_q = self.q_net(state_input)
-        action = np.argmax(action_q.numpy()[0], axis=0)
+        action_l = self.remove_illegal(
+            action_q.numpy(), state['legal_actions'])
+        action = np.argmax(action_l, axis=0)
         return action
+
+    def eval_step(self, state):
+        ''' Predict the action for evaluation purpose.
+
+        Args:
+            state (numpy.array): current state
+
+        Returns:
+            action (int): an action id
+            probs (list): a list of probabilies
+        '''
+        # q_values = self.q_estimator.predict(
+        #     np.expand_dims(state['obs'], 0))[0]
+        # probs = remove_illegal(np.exp(q_values), state['legal_actions'])
+        # best_action = np.argmax(probs)
+        # return best_action, probs
+        state_input = tf.convert_to_tensor(
+            state['obs'], dtype=tf.float32)
+        action_q = self.q_net(state_input)
+        action_l = self.remove_illegal(
+            action_q.numpy(), state['legal_actions'])
+        action = np.argmax(action_l, axis=0)
+        return action, action_l
 
     def update_target_network(self):
         """
@@ -89,15 +152,19 @@ class DqnAgent:
         """
         state_batch, next_state_batch, action_batch, reward_batch, done_batch \
             = batch
-        current_q = self.q_net(state_batch).numpy()
-        target_q = np.copy(current_q)
-        next_q = self.target_q_net(next_state_batch).numpy()
-        max_next_q = np.amax(next_q, axis=1)
-        for i in range(state_batch.shape[0]):
+        loss = 0.0
+        for i in range(len(state_batch)):
+            current_q = self.q_net(state_batch[i]["obs"]).numpy()
+            target_q = np.copy(current_q)
+            next_q = self.target_q_net(next_state_batch[i]["obs"]).numpy()
+            max_next_q = np.amax(next_q)
+
             target_q_val = reward_batch[i]
             if not done_batch[i]:
-                target_q_val += 0.95 * max_next_q[i]
-            target_q[i][action_batch[i]] = target_q_val
-        training_history = self.q_net.fit(x=state_batch, y=target_q, verbose=0)
-        loss = training_history.history['loss']
+                target_q_val += 0.95 * max_next_q
+                target_q[action_batch[i]] = target_q_val
+
+            training_history = self.q_net.fit(
+                x=state_batch[i]["obs"], y=target_q, verbose=0)
+            loss += training_history.history['loss'][0]
         return loss
