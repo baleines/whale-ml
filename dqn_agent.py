@@ -96,12 +96,6 @@ class DqnAgent:
         Returns:
             action (int): an action id
         '''
-        # print(f"state[obs]:{type(state['obs'])}:{state['obs']}")
-        # print(f"state[legal_actions]:{state['legal_actions']}")
-        # A = self.predict(state['obs'])
-        # A = remove_illegal(A, state['legal_actions'])
-        # action = np.random.choice(np.arange(len(A)), p=A)
-        # return action
         state_input = tf.convert_to_tensor(
             state['obs'], dtype=tf.float32)
         action_q = self.q_net(state_input)
@@ -120,11 +114,6 @@ class DqnAgent:
             action (int): an action id
             probs (list): a list of probabilies
         '''
-        # q_values = self.q_estimator.predict(
-        #     np.expand_dims(state['obs'], 0))[0]
-        # probs = remove_illegal(np.exp(q_values), state['legal_actions'])
-        # best_action = np.argmax(probs)
-        # return best_action, probs
         state_input = tf.convert_to_tensor(
             state['obs'], dtype=tf.float32)
         action_q = self.q_net(state_input)
