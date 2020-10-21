@@ -146,13 +146,17 @@ class DqnAgent:
             current_q = self.q_net(state_batch[i]["obs"]).numpy()
             target_q = np.copy(current_q)
             next_q = self.target_q_net(next_state_batch[i]["obs"]).numpy()
+            # get the max from possible actions
             max_next_q = np.amax(next_q)
-
+            # is doesn't really make sense here reward has to be better
             target_q_val = reward_batch[i]
+            # # [3] is for water level
+            # target_q_val = 10*reward_batch[i] + state_batch[i]["obs"][3]
             if not done_batch[i]:
                 target_q_val += 0.95 * max_next_q
                 target_q[action_batch[i]] = target_q_val
 
+            # idea of training maximize the number of victories
             training_history = self.q_net.fit(
                 x=state_batch[i]["obs"], y=target_q, verbose=0)
             loss += training_history.history['loss'][0]
