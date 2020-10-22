@@ -141,7 +141,8 @@ class DqnAgent:
         """
         state_batch, next_state_batch, action_batch, reward_batch, done_batch \
             = batch
-        loss = 0.0
+        # total_win = 0
+        target_q_agg = list()
         for i in range(len(state_batch)):
             current_q = self.q_net(state_batch[i]["obs"]).numpy()
             target_q = np.copy(current_q)
@@ -149,15 +150,21 @@ class DqnAgent:
             # get the max from possible actions
             max_next_q = np.amax(next_q)
             # is doesn't really make sense here reward has to be better
-            target_q_val = reward_batch[i]
+            target_q_val = next_state_batch[i]["obs"][3] - \
+                state_batch[i]["obs"][3]
+            # target_q_val = reward_batch[i]
+            # total_win += reward_batch[i]
             # # [3] is for water level
             # target_q_val = 10*reward_batch[i] + state_batch[i]["obs"][3]
             if not done_batch[i]:
                 target_q_val += 0.95 * max_next_q
                 target_q[action_batch[i]] = target_q_val
+            target_q_agg.append(target_q)
 
-            # idea of training maximize the number of victories
-            training_history = self.q_net.fit(
-                x=state_batch[i]["obs"], y=target_q, verbose=0)
-            loss += training_history.history['loss'][0]
+        # print("total_win", total_win)
+        # idea of training maximize the number of victories
+        training_history = self.q_net.fit(
+            x=state_batch[i]["obs"], y=target_q, verbose=0)
+        loss = training_history.history['loss'][0]
+        # return loss, total_win
         return loss
