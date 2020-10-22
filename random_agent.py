@@ -22,20 +22,23 @@ class RandomAgent(object):
             state (dict): An dictionary that represents the current state
 
         Returns:
-            action (int): The action predicted (randomly chosen) by the random agent
+            action (int): The action predicted (randomly chosen) by the random
+            agent
         '''
-        #return np.random.randint(0, self.action_num)
+        # return np.random.randint(0, self.action_num)
         return np.random.choice(state['legal_actions'])
 
     def eval_step(self, state):
         ''' Predict the action given the current state for evaluation.
-            Since the random agents are not trained. This function is equivalent to step function
+            Since the random agents are not trained. This function is
+            equivalent to step function
 
         Args:
             state (dict): An dictionary that represents the current state
 
         Returns:
-            action (int): The action predicted (randomly chosen) by the random agent
+            action (int): The action predicted (randomly chosen) by
+            the random agent
             probs (list): The list of action probabilities
         '''
         probs = [0 for _ in range(self.action_num)]
