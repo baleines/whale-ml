@@ -8,7 +8,7 @@ and then use the saved gameplay experiences to train the underlying model.
 from dqn_agent import DqnAgent
 from replay_buffer import ReplayBuffer
 import rlcard
-from rlcard.agents import RandomAgent
+from random_agent import RandomAgent
 from rlcard.utils import set_global_seed
 
 
