@@ -51,11 +51,12 @@ def collect_gameplay_experiences(env, agent, buffer):
     """
     trajectories, _ = env.run(is_training=False)
     # Feed transitions into agent memory, and train the agent
-    for ts in trajectories[0]:
-        # print('State: {}, Action: {}, Reward: {}, Next State: {}, Done: {}'.
-        #       format(ts[0], ts[1], ts[2], ts[3], ts[4]))
-        buffer.store_gameplay_experience(ts[0], ts[3],
-                                         ts[2], ts[1], ts[4])
+    # for ts in trajectories[0]:
+    #     # print('State: {}, Action: {}, Reward: {}, Next State: {}, Done: {}'.
+    #     #       format(ts[0], ts[1], ts[2], ts[3], ts[4]))
+    #     buffer.store_gameplay_experience(ts[0], ts[3],
+    #                                      ts[2], ts[1], ts[4])
+    return trajectories[0]
 
 
 def train_model(max_episodes=50000):
@@ -90,11 +91,9 @@ def train_model(max_episodes=50000):
     env.set_agents(agents)
 
     for episode_cnt in range(max_episodes):
-        collect_gameplay_experiences(env, agents, buffer)
-        # gameplay_experience_batch = buffer.sample_gameplay_batch()
-        loss = agent.train(buffer.gameplay_experiences)
+        loss = agent.train(collect_gameplay_experiences(env, agents, buffer))
         avg_reward = evaluate_training_result(env, agent)
-        target_update = episode_cnt % 20 == 0
+        target_update = episode_cnt % 100 == 0
         print('Episode {0:5d}/{1} perf:{2:.2f} t_update: {3} loss:{4}'.format(
             episode_cnt, max_episodes, avg_reward, target_update, loss))
         if target_update:

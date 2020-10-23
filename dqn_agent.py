@@ -141,12 +141,13 @@ class DqnAgent:
         """
         # state_batch, next_state_batch, action_batch, reward_batch, \
         # done_batch = batch
-
+    #     # print('State: {}, Action: {}, Reward: {}, Next State: {}, Done: {}'.
+    #     #       format(ts[0], ts[1], ts[2], ts[3], ts[4]))
         state_batch = [state[0]["obs"] for state in batch]
-        next_state_batch = [state[1]["obs"] for state in batch]
-        action_batch = [state[2] for state in batch]
-        reward_batch = [state[3] for state in batch]
-        done_batch = [state[4] for state in batch]
+        next_state_batch = [state[3]["obs"] for state in batch]
+        action_batch = [state[1]for state in batch]
+        reward_batch = [state[2]for state in batch]
+        done_batch = [state[4]for state in batch]
         target_q_agg = list()
         for i in range(len(state_batch)):
             current_q = self.q_net(state_batch[i]).numpy()
