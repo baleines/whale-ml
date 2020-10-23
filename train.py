@@ -8,8 +8,8 @@ and then use the saved gameplay experiences to train the underlying model.
 from dqn_agent import DqnAgent
 from replay_buffer import ReplayBuffer
 from random_agent import RandomAgent
-import rlcard
-from rlcard.utils import set_global_seed
+from whale.whale import WhaleEnv
+from whale.utils import set_global_seed
 
 
 def evaluate_training_result(env, agent):
@@ -30,8 +30,8 @@ def evaluate_training_result(env, agent):
         episode_reward = 0.0
         for ts in trajectories[0]:
             # print(
-            #     'State: {}, Action: {}, Reward: {}, Next State: {}, Done: {}'.
-            #     format(ts[0], ts[1], ts[2], ts[3], ts[4]))
+            #    'State: {}, Action: {}, Reward: {}, Next State: {}, Done: {}'.
+            #    format(ts[0], ts[1], ts[2], ts[3], ts[4]))
             episode_reward += ts[2]
         total_reward += episode_reward
 
@@ -67,8 +67,16 @@ def train_model(max_episodes=50000):
 
     buffer = ReplayBuffer()
     # Make environment
-    env = rlcard.make('whale', config={'seed': 0, 'num_players': 5})
-
+    env = WhaleEnv(
+        config={
+            'allow_step_back': False,
+            'allow_raw_data': False,
+            'single_agent_mode': False,
+            'active_player': 0,
+            'record_action': False,
+            'seed': 0,
+            'env_num': 1,
+            'num_players': 5})
     # Set a global seed
     set_global_seed(0)
     # Set up agents
