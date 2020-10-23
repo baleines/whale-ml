@@ -11,7 +11,6 @@ class WhaleJudger(object):
         Returns:
             (list): The player id of the winner
         '''
-        self.np_random = np_random
         for index, players in enumerate(players):
             # todo create variable for this
             if players.water == 5:

@@ -4,7 +4,7 @@ import whale.seeding as seeding
 
 class Env(object):
     '''
-    The base Env class. For all the environments in RLCard,
+    The base Env class. For all the environments,
     we should base on this class and implement as many functions
     as we can.
     '''
@@ -124,7 +124,7 @@ class Env(object):
         if not self.allow_step_back:
             raise Exception(
                 'Step back is off. To use step_back, please \
-                set allow_step_back=True in rlcard.make')
+                set allow_step_back=True')
 
         if not self.game.step_back():
             return False
@@ -197,8 +197,10 @@ class Env(object):
             player_id = next_player_id
 
             # Save state.
-            if not self.game.is_over():
-                trajectories[player_id].append(state)
+            # if not self.game.is_over():
+            #     trajectories[player_id].append(state)
+            # debug always save state
+            trajectories[player_id].append(state)
 
         # Add a final state to all the players
         for player_id in range(self.player_num):

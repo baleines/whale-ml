@@ -23,9 +23,9 @@ def evaluate_training_result(env, agent):
     :return: average reward across episodes
     """
     total_reward = 0.0
-    episodes_to_play = 10
+    episodes_to_play = 100
     for i in range(episodes_to_play):
-        trajectories, _ = env.run(is_training=True)
+        trajectories, _ = env.run(is_training=False)
         # calculate reward
         episode_reward = 0.0
         for ts in trajectories[0]:
@@ -95,9 +95,8 @@ def train_model(max_episodes=50000):
         gameplay_experience_batch = buffer.sample_gameplay_batch()
         loss = agent.train(gameplay_experience_batch)
         avg_reward = evaluate_training_result(env, agent)
-        print('Episode {0}/{1} and so far the performance is {2} and '
-              'loss is {3}'.format(episode_cnt, max_episodes,
-                                   avg_reward, loss))
+        print('Episode {0}/{1} perf:{2} loss:{3}'.format(
+            episode_cnt, max_episodes, avg_reward, loss))
         if episode_cnt % 20 == 0:
             agent.update_target_network()
     env.close()

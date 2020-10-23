@@ -144,19 +144,6 @@ class DqnAgent:
         obs_s = [state['obs'] for state in state_batch]
         next_obs_s = [state['obs']
                       for state in next_state_batch]
-        # current_q = self.q_net(obs_s).numpy()
-        # target_q = np.copy(current_q)
-        # next_q = self.target_q_net(next_obs_s).numpy()
-        # max_next_q = np.amax(next_q, axis=1)
-        # for i in range(len(state_batch)):
-        #     target_q_val = reward_batch[i]
-        #     if not done_batch[i]:
-        #         target_q_val += 0.95 * max_next_q[i]
-        #     target_q[i][action_batch[i]] = target_q_val
-        # training_history = self.q_net.fit(x=state_batch, y=target_q, verbose=0)
-        # loss = training_history.history['loss']
-        # return loss
-        # total_win = 0
         target_q_agg = list()
         for i in range(len(state_batch)):
             current_q = self.q_net(obs_s[i]).numpy()
@@ -164,26 +151,16 @@ class DqnAgent:
             next_q = self.target_q_net(next_obs_s[i]).numpy()
             # get the max from possible actions
             max_next_q = np.amax(next_q)
-            # is doesn't really make sense here reward has to be better
-            if i > 0:
-                target_q_val = obs_s[i][3] - \
-                    obs_s[i][3]
-            else:
-                target_q_val = obs_s[i][3]
 
-            # target_q_val = reward_batch[i]
-            # total_win += reward_batch[i]
-            # # [3] is for water level
-            # target_q_val = 10*reward_batch[i] + state_batch[i]["obs"][3]
+            target_q_val = reward_batch[i]
+
             if not done_batch[i]:
                 target_q_val += 0.95 * max_next_q
                 target_q[action_batch[i]] = target_q_val
             target_q_agg.append(target_q)
 
-        # print("total_win", total_win)
         # idea of training maximize the number of victories
         training_history = self.q_net.fit(
             x=state_batch[i]["obs"], y=target_q, verbose=0)
         loss = training_history.history['loss'][0]
-        # return loss, total_win
         return loss
