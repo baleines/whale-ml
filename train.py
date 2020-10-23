@@ -88,8 +88,8 @@ def train_model(max_episodes=50000):
     agent_3 = RandomAgent(action_num=action_num)
     agents = [agent, agent_0, agent_1, agent_2, agent_3]
     env.set_agents(agents)
-    for _ in range(10):
-        collect_gameplay_experiences(env, agents, buffer)
+    # for _ in range(10):
+    #     collect_gameplay_experiences(env, agents, buffer)
     for episode_cnt in range(max_episodes):
         collect_gameplay_experiences(env, agents, buffer)
         gameplay_experience_batch = buffer.sample_gameplay_batch()

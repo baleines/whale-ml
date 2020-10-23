@@ -141,17 +141,36 @@ class DqnAgent:
         """
         state_batch, next_state_batch, action_batch, reward_batch, done_batch \
             = batch
+        obs_s = [state['obs'] for state in state_batch]
+        next_obs_s = [state['obs']
+                      for state in next_state_batch]
+        # current_q = self.q_net(obs_s).numpy()
+        # target_q = np.copy(current_q)
+        # next_q = self.target_q_net(next_obs_s).numpy()
+        # max_next_q = np.amax(next_q, axis=1)
+        # for i in range(len(state_batch)):
+        #     target_q_val = reward_batch[i]
+        #     if not done_batch[i]:
+        #         target_q_val += 0.95 * max_next_q[i]
+        #     target_q[i][action_batch[i]] = target_q_val
+        # training_history = self.q_net.fit(x=state_batch, y=target_q, verbose=0)
+        # loss = training_history.history['loss']
+        # return loss
         # total_win = 0
         target_q_agg = list()
         for i in range(len(state_batch)):
-            current_q = self.q_net(state_batch[i]["obs"]).numpy()
+            current_q = self.q_net(obs_s[i]).numpy()
             target_q = np.copy(current_q)
-            next_q = self.target_q_net(next_state_batch[i]["obs"]).numpy()
+            next_q = self.target_q_net(next_obs_s[i]).numpy()
             # get the max from possible actions
             max_next_q = np.amax(next_q)
             # is doesn't really make sense here reward has to be better
-            target_q_val = next_state_batch[i]["obs"][3] - \
-                state_batch[i]["obs"][3]
+            if i > 0:
+                target_q_val = obs_s[i][3] - \
+                    obs_s[i][3]
+            else:
+                target_q_val = obs_s[i][3]
+
             # target_q_val = reward_batch[i]
             # total_win += reward_batch[i]
             # # [3] is for water level

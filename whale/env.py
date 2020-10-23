@@ -1,4 +1,4 @@
-from whale.utils import *
+from whale.utils import reorganize
 import whale.seeding as seeding
 
 

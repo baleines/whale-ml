@@ -71,7 +71,7 @@ def hand2dict(hand):
     return hand_dict
 
 
-def encode_hand(hand, water_level):
+def encode_hand(hand):
     ''' Encode hand and represerve it into plane
 
     Args:
@@ -81,14 +81,27 @@ def encode_hand(hand, water_level):
         (array): 3 numpy array
     '''
     # plane = np.zeros((3, 4, 3), dtype=int)
-    plane = np.zeros((4), dtype=int)
+    plane = np.zeros((3), dtype=int)
     hand = hand2dict(hand)
     # populate each card
     for card in CARD_MAP.items():
         # print(f'card{card}')
         if hand.get(card[0]):
             plane[card[1]] = hand[card[0]]
-    plane[3] = water_level
+    return plane
+
+
+def encode_level(water_levels):
+    ''' Encode level and represerve it into plane
+
+    Args:
+        water_levels (list) : list of water levels
+            first is current player
+
+    Returns:
+        (array):  numpy array
+    '''
+    plane = np.array(water_levels, dtype=int)
     return plane
 
 

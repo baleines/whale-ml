@@ -112,7 +112,11 @@ class WhaleRound(object):
         state = {}
         player = players[player_id]
         state['hand'] = cards2list(player.hand)
-        state['water'] = player.water
+        water_levels = [player.water]
+        for player in players:
+            if player.player_id != player_id:
+                water_levels.append(player.water)
+        state['water'] = water_levels
         state['target'] = self.target.str
         state['played_cards'] = cards2list(self.played_cards)
         others_hand = []
