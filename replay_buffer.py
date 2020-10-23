@@ -38,16 +38,17 @@ class ReplayBuffer:
         # batch_size = min(128, len(self.gameplay_experiences))
         # sampled_gameplay_batch = random.sample(
         #     self.gameplay_experiences, batch_size)
-        state_batch = []
-        next_state_batch = []
-        action_batch = []
-        reward_batch = []
-        done_batch = []
-        for gameplay_experience in self.gameplay_experiences:
-            state_batch.append(gameplay_experience[0])
-            next_state_batch.append(gameplay_experience[1])
-            reward_batch.append(gameplay_experience[2])
-            action_batch.append(gameplay_experience[3])
-            done_batch.append(gameplay_experience[4])
-        return np.array(state_batch), np.array(next_state_batch), np.array(
-            action_batch), np.array(reward_batch), np.array(done_batch)
+        # state_batch = []
+        # next_state_batch = []
+        # action_batch = []
+        # reward_batch = []
+        # done_batch = []
+        # for gameplay_experience in self.gameplay_experiences:
+        #     state_batch.append(gameplay_experience[0])
+        #     next_state_batch.append(gameplay_experience[1])
+        #     reward_batch.append(gameplay_experience[2])
+        #     action_batch.append(gameplay_experience[3])
+        #     done_batch.append(gameplay_experience[4])
+        # return np.array(state_batch), np.array(next_state_batch), np.array(
+        #    action_batch), np.array(reward_batch), np.array(done_batch)
+        return self.gameplay_experiences

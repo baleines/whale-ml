@@ -139,28 +139,33 @@ class DqnAgent:
         :param batch: a batch of gameplay experiences
         :return: training loss
         """
-        state_batch, next_state_batch, action_batch, reward_batch, done_batch \
-            = batch
-        obs_s = [state['obs'] for state in state_batch]
-        next_obs_s = [state['obs']
-                      for state in next_state_batch]
+        # state_batch, next_state_batch, action_batch, reward_batch, \
+        # done_batch = batch
+
+        state_batch = [state[0]["obs"] for state in batch]
+        next_state_batch = [state[1]["obs"] for state in batch]
+        action_batch = [state[2] for state in batch]
+        reward_batch = [state[3] for state in batch]
+        done_batch = [state[4] for state in batch]
         target_q_agg = list()
         for i in range(len(state_batch)):
-            current_q = self.q_net(obs_s[i]).numpy()
+            current_q = self.q_net(state_batch[i]).numpy()
             target_q = np.copy(current_q)
-            next_q = self.target_q_net(next_obs_s[i]).numpy()
+            next_q = self.target_q_net(next_state_batch[i]).numpy()
             # get the max from possible actions
             max_next_q = np.amax(next_q)
 
-            target_q_val = reward_batch[i]
+            target_q_val = reward_batch[i] + \
+                (next_state_batch[i][3] - state_batch[i][3])/10.0
 
             if not done_batch[i]:
                 target_q_val += 0.95 * max_next_q
+                # this is replacing the value for done action
                 target_q[action_batch[i]] = target_q_val
             target_q_agg.append(target_q)
 
         # idea of training maximize the number of victories
         training_history = self.q_net.fit(
-            x=state_batch[i]["obs"], y=target_q, verbose=0)
+            x=state_batch[i], y=target_q, verbose=0)
         loss = training_history.history['loss'][0]
         return loss

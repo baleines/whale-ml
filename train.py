@@ -88,16 +88,16 @@ def train_model(max_episodes=50000):
     agent_3 = RandomAgent(action_num=action_num)
     agents = [agent, agent_0, agent_1, agent_2, agent_3]
     env.set_agents(agents)
-    # for _ in range(10):
-    #     collect_gameplay_experiences(env, agents, buffer)
+
     for episode_cnt in range(max_episodes):
         collect_gameplay_experiences(env, agents, buffer)
-        gameplay_experience_batch = buffer.sample_gameplay_batch()
-        loss = agent.train(gameplay_experience_batch)
+        # gameplay_experience_batch = buffer.sample_gameplay_batch()
+        loss = agent.train(buffer.gameplay_experiences)
         avg_reward = evaluate_training_result(env, agent)
-        print('Episode {0}/{1} perf:{2} loss:{3}'.format(
-            episode_cnt, max_episodes, avg_reward, loss))
-        if episode_cnt % 20 == 0:
+        target_update = episode_cnt % 20 == 0
+        print('Episode {0:5d}/{1} perf:{2:.2f} t_update: {3} loss:{4}'.format(
+            episode_cnt, max_episodes, avg_reward, target_update, loss))
+        if target_update:
             agent.update_target_network()
     env.close()
     print('No bug lol!!!')
