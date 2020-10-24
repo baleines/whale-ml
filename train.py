@@ -59,7 +59,7 @@ def collect_gameplay_experiences(env, agent, buffer):
     return trajectories[0]
 
 
-def train_model(max_episodes=50000):
+def train_model(max_episodes=200):
     """
     Trains a DQN agent to play the CartPole game by trial and error
 
@@ -89,11 +89,12 @@ def train_model(max_episodes=50000):
     agent_3 = RandomAgent(action_num=action_num)
     agents = [agent, agent_0, agent_1, agent_2, agent_3]
     env.set_agents(agents)
-
+    agent.load_pretrained()
+    UPDATE_TARGET_RATE = 20
     for episode_cnt in range(max_episodes):
         loss = agent.train(collect_gameplay_experiences(env, agents, buffer))
         avg_reward = evaluate_training_result(env, agent)
-        target_update = episode_cnt % 100 == 0
+        target_update = episode_cnt > 0 and episode_cnt % UPDATE_TARGET_RATE == 0
         print('Episode {0:5d}/{1} perf:{2:.2f} t_update: {3} loss:{4}'.format(
             episode_cnt, max_episodes, avg_reward, target_update, loss))
         if target_update:

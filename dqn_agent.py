@@ -129,7 +129,25 @@ class DqnAgent:
 
         :return: None
         """
+        with open('dqn_weights.npy', 'wb') as f:
+            np.save(f, self.q_net.get_weights())
         self.target_q_net.set_weights(self.q_net.get_weights())
+
+    def load_pretrained(self):
+        """
+        Loads previously trained model.
+
+        :return: None
+        """
+        weights = None
+        try:
+            with open('dqn_weights.npy', 'rb') as f:
+                weights = np.load(f, allow_pickle=True)
+        except FileNotFoundError:
+            print('no pretrained file found')
+        if weights is not None:
+            self.target_q_net.set_weights(weights)
+            self.q_net.set_weights(weights)
 
     def train(self, batch):
         """
