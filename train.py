@@ -49,6 +49,7 @@ def collect_gameplay_experiences(env, agent, buffer):
     :param buffer: the replay buffer
     :return: None
     """
+    env.reset()
     trajectories, _ = env.run(is_training=False)
     # Feed transitions into agent memory, and train the agent
     # for ts in trajectories[0]:
@@ -91,15 +92,23 @@ def train_model(max_episodes=200):
     env.set_agents(agents)
     agent.load_pretrained()
     UPDATE_TARGET_RATE = 20
-    for episode_cnt in range(max_episodes):
+    min_perf, max_perf = 1.0, 0.0
+    for episode_cnt in range(1, max_episodes+1):
         loss = agent.train(collect_gameplay_experiences(env, agents, buffer))
         avg_reward = evaluate_training_result(env, agent)
-        target_update = episode_cnt > 0 and episode_cnt % UPDATE_TARGET_RATE == 0
-        print('Episode {0:5d}/{1} perf:{2:.2f} t_update: {3} loss:{4}'.format(
-            episode_cnt, max_episodes, avg_reward, target_update, loss))
+        target_update = episode_cnt % UPDATE_TARGET_RATE == 0
+        if avg_reward > max_perf:
+            max_perf = avg_reward
+        if avg_reward < min_perf:
+            min_perf = avg_reward
+        print(
+            '{0:03d}/{1} perf:{2:.2f}(min:{3} max:{4})'
+            'up:{5:1d} loss:{6}'.format(
+                episode_cnt, max_episodes, avg_reward, min_perf, max_perf,
+                target_update, loss))
         if target_update:
             agent.update_target_network()
-    env.close()
+    # env.close()
     print('No bug lol!!!')
 
 

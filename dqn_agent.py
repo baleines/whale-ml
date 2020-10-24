@@ -19,6 +19,7 @@ class DqnAgent:
         Args:
             action_num (int): The size of the ouput action space
         '''
+        self.gamma = 0.80
         self.use_raw = False
         self.dim = dim
         self.action_num = action_num
@@ -159,8 +160,8 @@ class DqnAgent:
         """
         # state_batch, next_state_batch, action_batch, reward_batch, \
         # done_batch = batch
-    #     # print('State: {}, Action: {}, Reward: {}, Next State: {}, Done: {}'.
-    #     #       format(ts[0], ts[1], ts[2], ts[3], ts[4]))
+        # print('State: {}, Action: {}, Reward: {}, Next State: {}, Done: {}'.
+        #       format(ts[0], ts[1], ts[2], ts[3], ts[4]))
         state_batch = [state[0]["obs"] for state in batch]
         next_state_batch = [state[3]["obs"] for state in batch]
         action_batch = [state[1]for state in batch]
@@ -178,7 +179,7 @@ class DqnAgent:
                 (next_state_batch[i][3] - state_batch[i][3])/10.0
 
             if not done_batch[i]:
-                target_q_val += 0.95 * max_next_q
+                target_q_val += self.gamma * max_next_q
                 # this is replacing the value for done action
                 target_q[action_batch[i]] = target_q_val
             target_q_agg.append(target_q)
