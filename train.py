@@ -10,6 +10,7 @@ from replay_buffer import ReplayBuffer
 from random_agent import RandomAgent
 from whale.whale import WhaleEnv
 from whale.utils import set_global_seed
+from datetime import datetime
 
 
 def evaluate_training_result(env, agent):
@@ -49,6 +50,7 @@ def collect_gameplay_experiences(env, agent, buffer):
     :param buffer: the replay buffer
     :return: None
     """
+    # TODO fix this function
     env.reset()
     trajectories, _ = env.run(is_training=False)
     # Feed transitions into agent memory, and train the agent
@@ -60,7 +62,7 @@ def collect_gameplay_experiences(env, agent, buffer):
     return trajectories[0]
 
 
-def train_model(max_episodes=200):
+def train_model(max_episodes=50000):
     """
     Trains a DQN agent to play the CartPole game by trial and error
 
@@ -79,8 +81,8 @@ def train_model(max_episodes=200):
             'seed': 0,
             'env_num': 1,
             'num_players': 5})
-    # Set a global seed
-    set_global_seed(0)
+    # Set a global seed using time
+    set_global_seed(datetime.utcnow().microsecond)
     # Set up agents
     action_num = 3
     agent = DqnAgent(dim=1, action_num=action_num)

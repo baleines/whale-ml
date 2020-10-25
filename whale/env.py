@@ -199,7 +199,7 @@ class Env(object):
             # Save state.
             # if not self.game.is_over():
             #     trajectories[player_id].append(state)
-            # debug always save state
+            # save terminatory state
             trajectories[player_id].append(state)
 
         # Add a final state to all the players
