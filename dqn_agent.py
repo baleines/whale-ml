@@ -175,8 +175,10 @@ class DqnAgent:
             # get the max from possible actions
             max_next_q = np.amax(next_q)
 
-            target_q_val = reward_batch[i] + \
-                (next_state_batch[i][3] - state_batch[i][3])/10.0
+            # trying to make training faster
+            # target_q_val = reward_batch[i] + \
+            #     (next_state_batch[i][3] - state_batch[i][3])/10.0
+            target_q_val = reward_batch[i]
 
             if not done_batch[i]:
                 target_q_val += self.gamma * max_next_q
