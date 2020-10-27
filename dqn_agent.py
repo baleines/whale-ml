@@ -99,7 +99,7 @@ class DqnAgent:
             action (int): an action id
         '''
         state_input = tf.convert_to_tensor(
-            state['obs'], dtype=tf.float32)
+            state['obs'], dtype=tf.int16)
         action_q = self.q_net(state_input)
         action_l = self.remove_illegal(
             action_q.numpy(), state['legal_actions'])
@@ -117,7 +117,7 @@ class DqnAgent:
             probs (list): a list of probabilies
         '''
         state_input = tf.convert_to_tensor(
-            state['obs'], dtype=tf.float32)
+            state['obs'], dtype=tf.int16)
         action_q = self.q_net(state_input)
         action_l = self.remove_illegal(
             action_q.numpy(), state['legal_actions'])

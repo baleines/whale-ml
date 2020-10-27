@@ -111,7 +111,7 @@ def train_model(max_episodes=50000):
         if target_update:
             agent.update_target_network()
     # env.close()
-    print('No bug lol!!!')
+    print('training end')
 
 
 train_model()
