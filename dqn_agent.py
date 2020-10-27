@@ -81,7 +81,8 @@ class DqnAgent:
         '''
         probs = np.zeros(self.action_num)
         # todo access predicted actions and replace them in probs
-        probs[legal_actions] = action_probs[legal_actions]
+        for action in legal_actions:
+            probs[action] = action_probs[action]
         if np.sum(probs) == 0:
             probs[legal_actions] = 1 / len(legal_actions)
         else:
@@ -145,8 +146,9 @@ class DqnAgent:
             with open('dqn_weights.npy', 'rb') as f:
                 weights = np.load(f, allow_pickle=True)
         except FileNotFoundError:
-            print('no pretrained file found')
+            print('Starting from scratch no pretrained file found')
         if weights is not None:
+            print('Loading previously save model')
             self.target_q_net.set_weights(weights)
             self.q_net.set_weights(weights)
 

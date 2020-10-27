@@ -90,6 +90,9 @@ class WhaleRound(object):
                 continue
             if card.type == 'water':
                 water += 1
+
+        # draw is always legal
+        legal_actions = ['draw']
         # simplify only allow 2 water with double wave
         if double_wave >= 1 and water >= 2:
             legal_actions.append('double_water')
@@ -97,8 +100,6 @@ class WhaleRound(object):
         if wave >= 1 and water >= 0:
             legal_actions.append('single_water')
 
-        if not legal_actions:
-            legal_actions = ['draw']
         # print(f'{player_id}:legal_actions:{legal_actions}')
         return legal_actions
 
