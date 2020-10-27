@@ -131,9 +131,11 @@ class DqnAgent:
 
         :return: None
         """
+        self.target_q_net.set_weights(self.q_net.get_weights())
+
+    def save_weight(self):
         with open('dqn_weights.npy', 'wb') as f:
             np.save(f, self.q_net.get_weights())
-        self.target_q_net.set_weights(self.q_net.get_weights())
 
     def load_pretrained(self):
         """

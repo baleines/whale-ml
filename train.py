@@ -40,7 +40,7 @@ def evaluate_training_result(env, agent):
     return average_reward
 
 
-def collect_gameplay_experiences(env, agent, buffer):
+def collect_gameplay_experiences(env, agent):
     """
     Collects gameplay experiences by playing env with the instructions
     produced by agent and stores the gameplay experiences in buffer.
@@ -51,25 +51,31 @@ def collect_gameplay_experiences(env, agent, buffer):
     :return: None
     """
     # TODO fix this function
-    env.reset()
-    trajectories, _ = env.run(is_training=False)
+    experiences = None
+    for i in range(1, 20):
+        env.reset()
+        trajectories, _ = env.run(is_training=False)
+        if not experiences:
+            experiences = trajectories[0]
+        else:
+            experiences = experiences + trajectories[0]
     # Feed transitions into agent memory, and train the agent
     # for ts in trajectories[0]:
     #     # print('State: {}, Action: {}, Reward: {}, Next State: {}, Done: {}'.
     #     #       format(ts[0], ts[1], ts[2], ts[3], ts[4]))
     #     buffer.store_gameplay_experience(ts[0], ts[3],
     #                                      ts[2], ts[1], ts[4])
-    return trajectories[0]
+    return experiences
 
 
-def train_model(max_episodes=50000):
+def train_model(max_episodes=200):
     """
     Trains a DQN agent to play the CartPole game by trial and error
 
     :return: None
     """
 
-    buffer = ReplayBuffer()
+    # buffer = ReplayBuffer()
     # Make environment
     env = WhaleEnv(
         config={
@@ -96,11 +102,12 @@ def train_model(max_episodes=50000):
     UPDATE_TARGET_RATE = 20
     min_perf, max_perf = 1.0, 0.0
     for episode_cnt in range(1, max_episodes+1):
-        loss = agent.train(collect_gameplay_experiences(env, agents, buffer))
+        loss = agent.train(collect_gameplay_experiences(env, agents))
         avg_reward = evaluate_training_result(env, agent)
         target_update = episode_cnt % UPDATE_TARGET_RATE == 0
         if avg_reward > max_perf:
             max_perf = avg_reward
+            agent.save_weight()
         if avg_reward < min_perf:
             min_perf = avg_reward
         print(
