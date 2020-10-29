@@ -197,10 +197,8 @@ class Env(object):
             player_id = next_player_id
 
             # Save state.
-            # if not self.game.is_over():
-            #     trajectories[player_id].append(state)
-            # save terminatory state
-            trajectories[player_id].append(state)
+            if not self.game.is_over():
+                trajectories[player_id].append(state)
 
         # Add a final state to all the players
         for player_id in range(self.player_num):

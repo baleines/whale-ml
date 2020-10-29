@@ -21,13 +21,12 @@ class DqnAgent:
         '''
         self.gamma = 0.80
         self.use_raw = False
-        self.dim = dim
         self.action_num = action_num
-        self.q_net = self._build_dqn_model(dim)
-        self.target_q_net = self._build_dqn_model(dim)
+        self.q_net = self._build_dqn_model(action_num)
+        self.target_q_net = self._build_dqn_model(action_num)
 
     @staticmethod
-    def _build_dqn_model(dim):
+    def _build_dqn_model(action_num):
         """
         Builds a deep neural net which predicts the Q values for all possible
         actions given a state. The input should have the shape of the state, and
@@ -36,15 +35,12 @@ class DqnAgent:
 
         :return: Q network
         """
-        q_net = Sequential()
-        q_net.add(Dense(64, input_dim=dim, activation='relu',
-                        kernel_initializer='he_uniform'))
-        q_net.add(Dense(32, activation='relu',
-                        kernel_initializer='he_uniform'))
-        q_net.add(
-            Dense(1, activation='linear', kernel_initializer='he_uniform'))
+        inputs = tf.keras.layers.Input(shape=(8,))
+        outputs = tf.keras.layers.Dense(action_num, activation='relu')(inputs)
+        q_net = tf.keras.models.Model(inputs=inputs, outputs=outputs)
         q_net.compile(optimizer=tf.optimizers.Adam(learning_rate=0.001),
                       loss='mse')
+        # q_net.summary()
         return q_net
 
     def random_policy(self, state):
@@ -80,9 +76,10 @@ class DqnAgent:
             probd (numpy.array): A normalized vector without legal actions.
         '''
         probs = np.zeros(self.action_num)
+
         # todo access predicted actions and replace them in probs
         for action in legal_actions:
-            probs[action] = action_probs[action]
+            probs[action] = action_probs[0][action]
         if np.sum(probs) == 0:
             probs[legal_actions] = 1 / len(legal_actions)
         else:
@@ -98,12 +95,7 @@ class DqnAgent:
         Returns:
             action (int): an action id
         '''
-        state_input = tf.convert_to_tensor(
-            state['obs'], dtype=tf.int16)
-        action_q = self.q_net(state_input)
-        action_l = self.remove_illegal(
-            action_q.numpy(), state['legal_actions'])
-        action = np.argmax(action_l, axis=0)
+        action, _ = self.eval_step(state)
         return action
 
     def eval_step(self, state):
@@ -117,10 +109,10 @@ class DqnAgent:
             probs (list): a list of probabilies
         '''
         state_input = tf.convert_to_tensor(
-            state['obs'], dtype=tf.int16)
-        action_q = self.q_net(state_input)
+            [state['obs']], dtype=tf.float32)
+        action_q = self.q_net.predict(state_input)
         action_l = self.remove_illegal(
-            action_q.numpy(), state['legal_actions'])
+            action_q, state['legal_actions'])
         action = np.argmax(action_l, axis=0)
         return action, action_l
 
@@ -162,36 +154,20 @@ class DqnAgent:
         :param batch: a batch of gameplay experiences
         :return: training loss
         """
-        # state_batch, next_state_batch, action_batch, reward_batch, \
-        # done_batch = batch
-        # print('State: {}, Action: {}, Reward: {}, Next State: {}, Done: {}'.
-        #       format(ts[0], ts[1], ts[2], ts[3], ts[4]))
-        state_batch = [state[0]["obs"] for state in batch]
-        next_state_batch = [state[3]["obs"] for state in batch]
-        action_batch = [state[1]for state in batch]
-        reward_batch = [state[2]for state in batch]
-        done_batch = [state[4]for state in batch]
-        target_q_agg = list()
-        for i in range(len(state_batch)):
-            current_q = self.q_net(state_batch[i]).numpy()
-            target_q = np.copy(current_q)
-            next_q = self.target_q_net(next_state_batch[i]).numpy()
-            # get the max from possible actions
-            max_next_q = np.amax(next_q)
 
-            # trying to make training faster
-            # target_q_val = reward_batch[i] + \
-            #     (next_state_batch[i][3] - state_batch[i][3])/10.0
-            target_q_val = reward_batch[i]
+        state_batch, next_state_batch, action_batch, \
+            reward_batch, done_batch = batch
 
-            if not done_batch[i]:
-                target_q_val += self.gamma * max_next_q
-                # this is replacing the value for done action
-                target_q[action_batch[i]] = target_q_val
-            target_q_agg.append(target_q)
-
-        # idea of training maximize the number of victories
+        current_q = self.q_net(state_batch[0]).numpy()
+        target_q = np.copy(current_q)
+        next_q = self.target_q_net(next_state_batch[0]).numpy()
+        max_next_q = np.amax(next_q, axis=1)
+        for i in range(state_batch[0].shape[0]):
+            target_q_val = reward_batch[0][i]
+            if not done_batch[0][i]:
+                target_q_val += 0.95 * max_next_q[i]
+            target_q[i][action_batch[0][i]] = target_q_val
         training_history = self.q_net.fit(
-            x=state_batch[i], y=target_q, verbose=0)
-        loss = training_history.history['loss'][0]
+            x=state_batch[0], y=target_q, verbose=0)
+        loss = training_history.history['loss']
         return loss

@@ -6,11 +6,11 @@ agent will play the game episode by episode, store the gameplay experiences
 and then use the saved gameplay experiences to train the underlying model.
 """
 from dqn_agent import DqnAgent
-from replay_buffer import ReplayBuffer
 from random_agent import RandomAgent
 from whale.whale import WhaleEnv
 from whale.utils import set_global_seed
 from datetime import datetime
+import numpy as np
 
 
 def evaluate_training_result(env, agent):
@@ -26,7 +26,7 @@ def evaluate_training_result(env, agent):
     total_reward = 0.0
     episodes_to_play = 100
     for i in range(episodes_to_play):
-        trajectories, _ = env.run(is_training=False)
+        trajectories, _ = env.run(is_training=True)
         # calculate reward
         episode_reward = 0.0
         for ts in trajectories[0]:
@@ -40,7 +40,7 @@ def evaluate_training_result(env, agent):
     return average_reward
 
 
-def collect_gameplay_experiences(env, agent):
+def collect_gameplay_experiences(env, agent, game_count):
     """
     Collects gameplay experiences by playing env with the instructions
     produced by agent and stores the gameplay experiences in buffer.
@@ -51,24 +51,41 @@ def collect_gameplay_experiences(env, agent):
     :return: None
     """
     # TODO fix this function
-    experiences = None
-    for i in range(1, 20):
+    state_batch = []
+    next_state_batch = []
+    action_batch = []
+    reward_batch = []
+    done_batch = []
+    for i in range(1, game_count):
         env.reset()
         trajectories, _ = env.run(is_training=False)
-        if not experiences:
-            experiences = trajectories[0]
-        else:
-            experiences = experiences + trajectories[0]
-    # Feed transitions into agent memory, and train the agent
-    # for ts in trajectories[0]:
-    #     # print('State: {}, Action: {}, Reward: {}, Next State: {}, Done: {}'.
-    #     #       format(ts[0], ts[1], ts[2], ts[3], ts[4]))
-    #     buffer.store_gameplay_experience(ts[0], ts[3],
-    #                                      ts[2], ts[1], ts[4])
-    return experiences
+        # here we should have 8,n tensor
+        # t = np.zeros(shape=(8, len(trajectories[0])))
+        # # for each trajectory
+        # for i in range(len(trajectories[0])):
+        #     # populate each value
+        #     for j in range(len(t)):
+        #         t[j][i] = trajectories[0][i][0]["obs"][j][0]
+        # state_batch.append(t)
+        # # for each trajectory
+        # for i in range(len(trajectories[0])):
+        #     # populate each value
+        #     for j in range(len(t)):
+        #         t[j][i] = trajectories[0][i][3]["obs"][j][0]
+        # next_state_batch.append(t)
+
+        state_batch.append(np.array([state[0]["obs"]
+                                     for state in trajectories[0]]))
+        next_state_batch.append(
+            np.array([state[3]["obs"] for state in trajectories[0]]))
+        action_batch.append([state[1]for state in trajectories[0]])
+        reward_batch.append([state[2]for state in trajectories[0]])
+        done_batch.append([state[4]for state in trajectories[0]])
+    return (state_batch, next_state_batch, action_batch,
+            reward_batch, done_batch)
 
 
-def train_model(max_episodes=200):
+def train_model(max_episodes=1000):
     """
     Trains a DQN agent to play the CartPole game by trial and error
 
@@ -100,9 +117,11 @@ def train_model(max_episodes=200):
     env.set_agents(agents)
     agent.load_pretrained()
     UPDATE_TARGET_RATE = 20
+    GAME_COUNT_PER_EPISODE = 2
     min_perf, max_perf = 1.0, 0.0
     for episode_cnt in range(1, max_episodes+1):
-        loss = agent.train(collect_gameplay_experiences(env, agents))
+        loss = agent.train(collect_gameplay_experiences(
+            env, agents, GAME_COUNT_PER_EPISODE))
         avg_reward = evaluate_training_result(env, agent)
         target_update = episode_cnt % UPDATE_TARGET_RATE == 0
         if avg_reward > max_perf:

@@ -80,8 +80,7 @@ def encode_hand(hand):
     Returns:
         (array): 3 numpy array
     '''
-    # plane = np.zeros((3, 4, 3), dtype=int)
-    plane = np.zeros((3), dtype=int)
+    plane = [0, 0, 0]
     hand = hand2dict(hand)
     # populate each card
     for card in CARD_MAP.items():
@@ -101,8 +100,7 @@ def encode_level(water_levels):
     Returns:
         (array):  numpy array
     '''
-    plane = np.array(water_levels, dtype=int)
-    return plane
+    return water_levels
 
 
 def reorganize(trajectories, payoffs):
