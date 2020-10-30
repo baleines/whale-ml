@@ -63,7 +63,10 @@ class WhaleRound(object):
             self._preform_action(players, action)
         # perform draw action
         else:
-            self._perform_draw_action(players)
+            if not self.played_cards and not self.dealer.deck:
+                self.is_over = True
+            else:
+                self._perform_draw_action(players)
 
         # todo: create variable for this
         if player.water == 5:

@@ -51,36 +51,26 @@ def collect_gameplay_experiences(env, agent, game_count):
     :return: None
     """
     # TODO fix this function
-    state_batch = []
-    next_state_batch = []
+    state_batch = np.random.random((0, 8))
+    next_state_batch = np.random.random((0, 8))
     action_batch = []
     reward_batch = []
     done_batch = []
-    for i in range(1, game_count):
+    for _ in range(0, game_count):
         env.reset()
         trajectories, _ = env.run(is_training=False)
-        # here we should have 8,n tensor
-        # t = np.zeros(shape=(8, len(trajectories[0])))
-        # # for each trajectory
-        # for i in range(len(trajectories[0])):
-        #     # populate each value
-        #     for j in range(len(t)):
-        #         t[j][i] = trajectories[0][i][0]["obs"][j][0]
-        # state_batch.append(t)
-        # # for each trajectory
-        # for i in range(len(trajectories[0])):
-        #     # populate each value
-        #     for j in range(len(t)):
-        #         t[j][i] = trajectories[0][i][3]["obs"][j][0]
-        # next_state_batch.append(t)
-
-        state_batch.append(np.array([state[0]["obs"]
-                                     for state in trajectories[0]]))
-        next_state_batch.append(
-            np.array([state[3]["obs"] for state in trajectories[0]]))
-        action_batch.append([state[1]for state in trajectories[0]])
-        reward_batch.append([state[2]for state in trajectories[0]])
-        done_batch.append([state[4]for state in trajectories[0]])
+        # TODO cleanup this mess
+        # it linearize the batch to make it all flat
+        st = np.array([state[0]["obs"] for state in trajectories[0]])
+        state_batch = np.concatenate((state_batch, st))
+        next_st = np.array([state[3]["obs"] for state in trajectories[0]])
+        next_state_batch = np.concatenate((next_state_batch, next_st))
+        action = [state[1]for state in trajectories[0]]
+        action_batch = action_batch + action
+        reward = [state[2]for state in trajectories[0]]
+        reward_batch = reward_batch + reward
+        done = [state[4]for state in trajectories[0]]
+        done_batch = done_batch + done
     return (state_batch, next_state_batch, action_batch,
             reward_batch, done_batch)
 

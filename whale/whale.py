@@ -26,11 +26,11 @@ class WhaleEnv(Env):
         raise Exception(NotImplemented)
 
     def _extract_state(self, state):
+        # TODO simplify this
         hand = encode_hand(state['hand'])
         water = encode_level(state['water'])
         lis = hand + water
         obs = np.array(lis)
-        # obs.append(encode_hand(state['others_hand']))
         legal_action_id = self._get_legal_actions()
         extracted_state = {'obs': obs, 'legal_actions': legal_action_id}
         if self.allow_raw_data:

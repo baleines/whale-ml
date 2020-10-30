@@ -142,7 +142,7 @@ class DqnAgent:
         except FileNotFoundError:
             print('Starting from scratch no pretrained file found')
         if weights is not None:
-            print('Loading previously save model')
+            print('Loading previously saved model')
             self.target_q_net.set_weights(weights)
             self.q_net.set_weights(weights)
 
@@ -158,16 +158,19 @@ class DqnAgent:
         state_batch, next_state_batch, action_batch, \
             reward_batch, done_batch = batch
 
-        current_q = self.q_net(state_batch[0]).numpy()
+        current_q = self.q_net(state_batch).numpy()
         target_q = np.copy(current_q)
-        next_q = self.target_q_net(next_state_batch[0]).numpy()
+        # TODO fix this is does not make sense to calculate this way
+        next_q = self.target_q_net(next_state_batch).numpy()
         max_next_q = np.amax(next_q, axis=1)
-        for i in range(state_batch[0].shape[0]):
-            target_q_val = reward_batch[0][i]
-            if not done_batch[0][i]:
+        for i in range(state_batch.shape[0]):
+            # use the sum of rewards of the batch
+            target_q_val = reward_batch[i]
+            if not done_batch[i]:
                 target_q_val += 0.95 * max_next_q[i]
-            target_q[i][action_batch[0][i]] = target_q_val
+            # fix this
+            target_q[i][action_batch[i]] = target_q_val
         training_history = self.q_net.fit(
-            x=state_batch[0], y=target_q, verbose=0)
+            x=state_batch, y=target_q, verbose=0)
         loss = training_history.history['loss']
         return loss
