@@ -36,7 +36,10 @@ class DqnAgent:
         :return: Q network
         """
         inputs = tf.keras.layers.Input(shape=(8,))
-        outputs = tf.keras.layers.Dense(action_num, activation='relu')(inputs)
+        outputs = tf.keras.layers.Dense(
+            action_num,
+            activation='relu',
+            kernel_initializer='he_uniform')(inputs)
         q_net = tf.keras.models.Model(inputs=inputs, outputs=outputs)
         q_net.compile(optimizer=tf.optimizers.Adam(learning_rate=0.001),
                       loss='mse')
@@ -164,11 +167,17 @@ class DqnAgent:
         next_q = self.target_q_net(next_state_batch).numpy()
         max_next_q = np.amax(next_q, axis=1)
         for i in range(state_batch.shape[0]):
-            # use the sum of rewards of the batch
-            target_q_val = reward_batch[i]
+            # trick to add rewarded wave
+            # use reward for first of each batch
+            if i == 0 or done_batch[i-1]:
+                target_q_val = 10*reward_batch[i]
+            else:
+                # get the gain or loss water
+                plus_wave = state_batch[i][3] - state_batch[i-1][3]
+                target_q_val = 10*reward_batch[i] + plus_wave
             if not done_batch[i]:
+                # this does not realy make sense
                 target_q_val += 0.95 * max_next_q[i]
-            # fix this
             target_q[i][action_batch[i]] = target_q_val
         training_history = self.q_net.fit(
             x=state_batch, y=target_q, verbose=0)

@@ -90,19 +90,6 @@ def encode_hand(hand):
     return plane
 
 
-def encode_level(water_levels):
-    ''' Encode level and represerve it into plane
-
-    Args:
-        water_levels (list) : list of water levels
-            first is current player
-
-    Returns:
-        (array):  numpy array
-    '''
-    return water_levels
-
-
 def reorganize(trajectories, payoffs):
     ''' Reorganize the trajectory to make it RL friendly
 

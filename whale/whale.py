@@ -2,7 +2,7 @@ import numpy as np
 
 from whale.env import Env
 from whale.game import WhaleGame as Game
-from whale.utils import encode_hand, encode_level
+from whale.utils import encode_hand
 from whale.utils import ACTION_SPACE, ACTION_LIST
 from whale.utils import cards2list
 
@@ -28,9 +28,7 @@ class WhaleEnv(Env):
     def _extract_state(self, state):
         # TODO simplify this
         hand = encode_hand(state['hand'])
-        water = encode_level(state['water'])
-        lis = hand + water
-        obs = np.array(lis)
+        obs = np.array(hand + state['water'])
         legal_action_id = self._get_legal_actions()
         extracted_state = {'obs': obs, 'legal_actions': legal_action_id}
         if self.allow_raw_data:

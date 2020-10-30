@@ -12,6 +12,8 @@ from whale.utils import set_global_seed
 from datetime import datetime
 import numpy as np
 
+EVAL_EPISODES_COUNT = 100
+
 
 def evaluate_training_result(env, agent):
     """
@@ -24,8 +26,8 @@ def evaluate_training_result(env, agent):
     :return: average reward across episodes
     """
     total_reward = 0.0
-    episodes_to_play = 100
-    for i in range(episodes_to_play):
+    for i in range(EVAL_EPISODES_COUNT):
+        env.reset()
         trajectories, _ = env.run(is_training=True)
         # calculate reward
         episode_reward = 0.0
@@ -36,7 +38,7 @@ def evaluate_training_result(env, agent):
             episode_reward += ts[2]
         total_reward += episode_reward
 
-    average_reward = total_reward / episodes_to_play
+    average_reward = total_reward / EVAL_EPISODES_COUNT
     return average_reward
 
 
@@ -59,23 +61,28 @@ def collect_gameplay_experiences(env, agent, game_count):
     for _ in range(0, game_count):
         env.reset()
         trajectories, _ = env.run(is_training=False)
-        # TODO cleanup this mess
-        # it linearize the batch to make it all flat
-        st = np.array([state[0]["obs"] for state in trajectories[0]])
-        state_batch = np.concatenate((state_batch, st))
-        next_st = np.array([state[3]["obs"] for state in trajectories[0]])
-        next_state_batch = np.concatenate((next_state_batch, next_st))
-        action = [state[1]for state in trajectories[0]]
+        state_l = []
+        next_state_l = []
+        action = []
+        reward = []
+        done = []
+        for state in trajectories[0]:
+            state_l.append(state[0]["obs"])
+            next_state_l.append(state[3]["obs"])
+            action.append(state[1])
+            reward.append(state[2])
+            done.append(state[4])
+        state_batch = np.concatenate((state_batch, np.array(state_l)))
+        next_state_batch = np.concatenate(
+            (next_state_batch, np.array(next_state_l)))
         action_batch = action_batch + action
-        reward = [state[2]for state in trajectories[0]]
         reward_batch = reward_batch + reward
-        done = [state[4]for state in trajectories[0]]
         done_batch = done_batch + done
     return (state_batch, next_state_batch, action_batch,
             reward_batch, done_batch)
 
 
-def train_model(max_episodes=1000):
+def train_model(max_episodes=10):
     """
     Trains a DQN agent to play the CartPole game by trial and error
 
@@ -110,9 +117,12 @@ def train_model(max_episodes=1000):
     GAME_COUNT_PER_EPISODE = 2
     min_perf, max_perf = 1.0, 0.0
     for episode_cnt in range(1, max_episodes+1):
+        print(f'{datetime.utcnow()} train ...')
         loss = agent.train(collect_gameplay_experiences(
             env, agents, GAME_COUNT_PER_EPISODE))
+        print(f'{datetime.utcnow()} eval  ...')
         avg_reward = evaluate_training_result(env, agent)
+        print(f'{datetime.utcnow()} calc  ...')
         target_update = episode_cnt % UPDATE_TARGET_RATE == 0
         if avg_reward > max_perf:
             max_perf = avg_reward
