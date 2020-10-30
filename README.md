@@ -1,3 +1,3 @@
-# DQN from Scratch with TensorFlow 2
+# Whale game machine learning
 
-This repository goes hand-in-hand with the Medium post and YouTube video.
+This repo is where I put my ml experiments to improve my game rules using ML.
