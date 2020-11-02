@@ -53,8 +53,8 @@ def collect_gameplay_experiences(env, agent, game_count):
     :return: None
     """
     # TODO fix this function
-    state_batch = np.random.random((0, 8))
-    next_state_batch = np.random.random((0, 8))
+    state_batch = np.zeros((0, 8), dtype=float)
+    next_state_batch = np.zeros((0, 8), dtype=float)
     action_batch = []
     reward_batch = []
     done_batch = []
