@@ -15,7 +15,6 @@ class WhaleEnv(Env):
         self.name = 'whale'
         self.game = Game(num_players=config["num_players"])
         super().__init__(config)
-        self.state_shape = [1, 3]
 
     def _load_model(self):
         ''' Load pretrained/rule model
