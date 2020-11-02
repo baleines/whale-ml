@@ -1,7 +1,5 @@
 import tensorflow as tf
 import numpy as np
-from tensorflow.python.keras import Sequential
-from tensorflow.python.keras.layers import Dense
 
 
 class DqnAgent:
@@ -29,9 +27,9 @@ class DqnAgent:
     def _build_dqn_model(action_num):
         """
         Builds a deep neural net which predicts the Q values for all possible
-        actions given a state. The input should have the shape of the state, and
-        the output should have the same shape as the action space since we want
-        1 Q value per possible action.
+        actions given a state. The input should have the shape of the state,
+        and the output should have the same shape as the action space since
+        we want 1 Q value per possible action.
 
         :return: Q network
         """
@@ -46,33 +44,12 @@ class DqnAgent:
         # q_net.summary()
         return q_net
 
-    def random_policy(self, state):
-        """
-        Outputs a random action
-
-        :param state: not used
-        :return: action
-        """
-        # todo see if this has to be changed
-        return np.random.randint(0, self.action_num)
-
-    def collect_policy(self, state):
-        """
-        Similar to policy but with some randomness to encourage exploration.
-
-        :param state: the game state
-        :return: action
-        """
-        if np.random.random() < 0.05:
-            return self.random_policy(state['legal_actions'])
-        return self.policy(state)
-
     def remove_illegal(self, action_probs, legal_actions):
         ''' Remove illegal actions and normalize the
             probability vector
 
         Args:
-            action_probs (numpy.array): A 1 dimention numpy array.
+            action_probs (numpy.array): A 1 dimension numpy array.
             legal_actions (list): A list of indices of legal actions.
 
         Returns:

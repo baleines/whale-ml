@@ -39,18 +39,15 @@ class WhaleEnv(Env):
         return extracted_state
 
     def get_payoffs(self):
-
         return np.array(self.game.get_payoffs())
 
     def _decode_action(self, action_id):
         legal_ids = self._get_legal_actions()
         if action_id in legal_ids:
             return ACTION_LIST[action_id]
-        # TODO: clarify or remove this
-        # if (len(self.game.dealer.deck) +
-        # len(self.game.round.played_cards)) > 17:
-        #    return ACTION_LIST[60]
-        return ACTION_LIST[np.random.choice(legal_ids)]
+        return Exception(RuntimeError(
+            f'illegal action given {action_id} legal actions {legal_ids}')
+        )
 
     def _get_legal_actions(self):
         legal_actions = self.game.get_legal_actions()
@@ -58,10 +55,10 @@ class WhaleEnv(Env):
         return legal_ids
 
     def get_perfect_information(self):
-        ''' Get the perfect information of the current state
+        ''' Get perfect information of current state
 
         Returns:
-            (dict): Dictionary of all the perfect information of current state
+            (dict): Dictionary of perfect information for current state
         '''
         state = {}
         state['player_num'] = self.game.get_player_num()
