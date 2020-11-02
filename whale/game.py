@@ -5,6 +5,11 @@ from whale.round import WhaleRound as Round
 from copy import deepcopy
 import numpy as np
 
+# inital card per hand
+CARD_PER_HAND = 3
+# number of possible action (not all legal)
+ACTION_NUM = 3
+
 
 class WhaleGame(object):
 
@@ -35,7 +40,7 @@ class WhaleGame(object):
 
         # Deal 3 cards to each player to prepare for the game
         for player in self.players:
-            self.dealer.deal_cards(player, 3)
+            self.dealer.deal_cards(player, CARD_PER_HAND)
 
         # Initialize a Round
         self.round = Round(self.dealer, self.num_players, self.np_random)
@@ -132,12 +137,12 @@ class WhaleGame(object):
 
     @staticmethod
     def get_action_num():
-        ''' Return the number of applicable actions
+        ''' Return the number of actions (not all legal)
 
         Returns:
-            (int): The number of actions. There are 61 actions
+            (int): The number of actions.
         '''
-        return 61
+        return ACTION_NUM
 
     def get_player_id(self):
         ''' Return the current player's id
