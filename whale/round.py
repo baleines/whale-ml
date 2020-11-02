@@ -13,41 +13,12 @@ class WhaleRound(object):
         '''
         self.np_random = np_random
         self.dealer = dealer
-        self.target = None
         self.current_player = 0
         self.num_players = num_players
         self.direction = 1
         self.played_cards = []
         self.is_over = False
         self.winner = None
-
-    def flip_top_card(self):
-        ''' Flip the top card of the card pile
-
-        Returns:
-            (object of WhaleCard): the top card in game
-
-        '''
-        top = self.dealer.flip_top_card()
-        self.target = top
-        self.played_cards.append(top)
-        return top
-
-    def perform_top_card(self, players, top_card):
-        ''' Perform the top card
-
-        Args:
-            players (list): list of WhalePlayer objects
-            top_card (object): object of WhaleCard
-        '''
-        # if top_card.trait == 'skip':
-        #     self.current_player = 1
-        # elif top_card.trait == 'reverse':
-        #     self.direction = -1
-        #     self.current_player = (0 + self.direction) % self.num_players
-        # elif top_card.trait == 'draw_2':
-        #     player = players[self.current_player]
-        #     self.dealer.deal_cards(player, 2)
 
     def proceed_round(self, players, action):
         ''' Call other Classes's functions to keep one round running
@@ -121,7 +92,6 @@ class WhaleRound(object):
             if player.player_id != player_id:
                 water_levels.append(player.water)
         state['water'] = water_levels
-        state['target'] = self.target.str
         state['played_cards'] = cards2list(self.played_cards)
         others_hand = []
         for player in players:

@@ -45,10 +45,6 @@ class WhaleGame(object):
         # Initialize a Round
         self.round = Round(self.dealer, self.num_players, self.np_random)
 
-        # flip and perfrom top card
-        top_card = self.round.flip_top_card()
-        self.round.perform_top_card(self.players, top_card)
-
         # Save the hisory for stepping back to the last state.
         self.history = []
 
