@@ -90,6 +90,7 @@ def encode_hand(hand):
     return plane
 
 
+# TODO remove this and use direct model
 def reorganize(trajectories, payoffs):
     ''' Reorganize the trajectory to make it RL friendly
 

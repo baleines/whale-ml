@@ -205,7 +205,7 @@ class Env(object):
             state = self.get_state(player_id)
             trajectories[player_id].append(state)
 
-        # Payoffs
+        # TODO rewrite the payoff system
         payoffs = self.get_payoffs()
 
         # Reorganize the trajectories

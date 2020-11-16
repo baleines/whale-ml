@@ -53,8 +53,8 @@ def collect_gameplay_experiences(env, agent, game_count):
     :return: None
     """
     # TODO fix this function
-    state_batch = np.zeros((0, 8), dtype=float)
-    next_state_batch = np.zeros((0, 8), dtype=float)
+    state_batch = np.zeros((0, 9), dtype=float)
+    next_state_batch = np.zeros((0, 9), dtype=float)
     action_batch = []
     reward_batch = []
     done_batch = []
@@ -67,8 +67,10 @@ def collect_gameplay_experiences(env, agent, game_count):
         reward = []
         done = []
         for state in trajectories[0]:
-            state_l.append(state[0]["obs"])
-            next_state_l.append(state[3]["obs"])
+            state_l.append(state[0]['hand'] +
+                           [state[0]['gain']]+state[0]['scores'])
+            next_state_l.append(
+                state[3]['hand']+[state[3]['gain']]+state[3]['scores'])
             action.append(state[1])
             reward.append(state[2])
             done.append(state[4])
@@ -105,7 +107,7 @@ def train_model(max_episodes=10):
     set_global_seed(datetime.utcnow().microsecond)
     # Set up agents
     action_num = 3
-    agent = DqnAgent(dim=1, action_num=action_num)
+    agent = DqnAgent(dim=1, action_num=action_num, player_num=5)
     agent_0 = RandomAgent(action_num=action_num)
     agent_1 = RandomAgent(action_num=action_num)
     agent_2 = RandomAgent(action_num=action_num)
@@ -117,12 +119,12 @@ def train_model(max_episodes=10):
     GAME_COUNT_PER_EPISODE = 2
     min_perf, max_perf = 1.0, 0.0
     for episode_cnt in range(1, max_episodes+1):
-        print(f'{datetime.utcnow()} train ...')
+        # print(f'{datetime.utcnow()} train ...')
         loss = agent.train(collect_gameplay_experiences(
             env, agents, GAME_COUNT_PER_EPISODE))
-        print(f'{datetime.utcnow()} eval  ...')
+        # print(f'{datetime.utcnow()} eval  ...')
         avg_reward = evaluate_training_result(env, agent)
-        print(f'{datetime.utcnow()} calc  ...')
+        # print(f'{datetime.utcnow()} calc  ...')
         target_update = episode_cnt % UPDATE_TARGET_RATE == 0
         if avg_reward > max_perf:
             max_perf = avg_reward

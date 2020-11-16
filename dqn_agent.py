@@ -11,7 +11,7 @@ class DqnAgent:
     a state-action pair.
     """
 
-    def __init__(self, dim, action_num):
+    def __init__(self, dim, action_num, player_num):
         ''' Initilize the random agent
 
         Args:
@@ -20,11 +20,12 @@ class DqnAgent:
         self.gamma = 0.80
         self.use_raw = False
         self.action_num = action_num
-        self.q_net = self._build_dqn_model(action_num)
-        self.target_q_net = self._build_dqn_model(action_num)
+        self.player_num = player_num
+        self.q_net = self._build_dqn_model(action_num, player_num)
+        self.target_q_net = self._build_dqn_model(action_num, player_num)
 
     @staticmethod
-    def _build_dqn_model(action_num):
+    def _build_dqn_model(action_num, player_num):
         """
         Builds a deep neural net which predicts the Q values for all possible
         actions given a state. The input should have the shape of the state,
@@ -33,11 +34,17 @@ class DqnAgent:
 
         :return: Q network
         """
-        inputs = tf.keras.layers.Input(shape=(8,))
+        # card counts + gain for this round + scores for this round
+        shape_size = 3 + 1 + player_num
+        inputs = tf.keras.layers.Input(shape=(shape_size,))
+        mid = tf.keras.layers.Dense(
+            32,
+            activation='relu',
+            kernel_initializer='he_uniform')(inputs)
         outputs = tf.keras.layers.Dense(
             action_num,
             activation='relu',
-            kernel_initializer='he_uniform')(inputs)
+            kernel_initializer='he_uniform')(mid)
         q_net = tf.keras.models.Model(inputs=inputs, outputs=outputs)
         q_net.compile(optimizer=tf.optimizers.Adam(learning_rate=0.001),
                       loss='mse')
@@ -89,7 +96,7 @@ class DqnAgent:
             probs (list): a list of probabilies
         '''
         state_input = tf.convert_to_tensor(
-            [state['obs']], dtype=tf.float32)
+            [state['hand']+[state['gain']]+state['scores']], dtype=tf.float32)
         action_q = self.q_net.predict(state_input)
         action_l = self.remove_illegal(
             action_q, state['legal_actions'])
@@ -150,7 +157,7 @@ class DqnAgent:
                 target_q_val = 10*reward_batch[i]
             else:
                 # get the gain or loss water
-                plus_wave = state_batch[i][3] - state_batch[i-1][3]
+                plus_wave = state_batch[i][3]
                 target_q_val = 10*reward_batch[i] + plus_wave
             if not done_batch[i]:
                 # this does not realy make sense

@@ -91,7 +91,8 @@ class WhaleRound(object):
         for player in players:
             if player.player_id != player_id:
                 water_levels.append(player.water)
-        state['water'] = water_levels
+        state['scores'] = water_levels
+        state['gain'] = player.gain
         state['played_cards'] = cards2list(self.played_cards)
         others_hand = []
         for player in players:
@@ -117,6 +118,7 @@ class WhaleRound(object):
             self.replace_deck()
         card = self.dealer.deck.pop()
         players[self.current_player].hand.append(card)
+        players[self.current_player].gain = 0
         # print(
         #     f'{self.current_player}:draw:{players[self.current_player].hand}')
 
@@ -130,11 +132,13 @@ class WhaleRound(object):
             player.water += 1
             # recycle wave but not water
             self.played_cards.append(WhaleCard('wave'))
+            player.gain = 1
         elif action == 'double_water':
             self._remove_hand(player, 'double_wave')
             self._remove_hand(player, 'water')
             self._remove_hand(player, 'water')
             player.water += 2
+            player.gain = 2
             # recycle wave but not water
             self.played_cards.append(WhaleCard('double_wave'))
 
