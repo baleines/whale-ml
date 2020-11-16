@@ -9,15 +9,11 @@ from whale.utils import set_global_seed
 # Make environment
 env = WhaleEnv(
     config={
-        'allow_step_back': False,
-        'allow_raw_data': False,
-        'single_agent_mode': False,
         'active_player': 0,
-        'record_action': False,
         'seed': 0,
         'env_num': 1,
         'num_players': 4})
-episode_num = 5
+episode_num = 1
 
 # Set a global seed
 set_global_seed(0)

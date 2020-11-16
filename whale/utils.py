@@ -1,8 +1,6 @@
-import os
 from pathlib import Path
-import json
 import numpy as np
-from collections import OrderedDict
+
 
 from whale.card import WhaleCard as Card
 
@@ -11,11 +9,6 @@ ROOT_PATH = Path(__file__).parent
 
 # a map of trait to its index
 CARD_MAP = {'water': 0, 'wave': 1, 'double_wave': 2}
-
-# a map of abstract action to its index and a list of abstract action
-with open(os.path.join(ROOT_PATH, 'jsondata/action_space.json'), 'r') as file:
-    ACTION_SPACE = json.load(file, object_pairs_hook=OrderedDict)
-    ACTION_LIST = list(ACTION_SPACE.keys())
 
 
 def init_deck():

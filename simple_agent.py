@@ -1,17 +1,17 @@
 import tensorflow as tf
 import numpy as np
 
+SIMPLE_WEIGHTS_FILE = 'simple_weights.npy'
 
-class DqnAgent:
+
+class SimpleAgent:
     """
-    DQN Agent
+    Simple Agent
 
-    The agent that explores the game and learn how to play the game by
-    learning how to predict the expected long-term return, the Q value given
-    a state-action pair.
+    The simple agent is train by simply using wining previous games
     """
 
-    def __init__(self, dim, action_num, player_num):
+    def __init__(self, action_num, player_num):
         ''' Initilize the random agent
 
         Args:
@@ -21,11 +21,10 @@ class DqnAgent:
         self.use_raw = False
         self.action_num = action_num
         self.player_num = player_num
-        self.q_net = self._build_dqn_model(action_num, player_num)
-        self.target_q_net = self._build_dqn_model(action_num, player_num)
+        self.net = self._build_model(action_num, player_num)
 
     @staticmethod
-    def _build_dqn_model(action_num, player_num):
+    def _build_model(action_num, player_num):
         """
         Builds a deep neural net which predicts the Q values for all possible
         actions given a state. The input should have the shape of the state,
@@ -46,12 +45,12 @@ class DqnAgent:
         # normalize
         outputs = tf.keras.layers.Lambda(
             lambda x: x / tf.keras.backend.sum(x))(outputs)
-        q_net = tf.keras.models.Model(inputs=inputs, outputs=outputs)
+        net = tf.keras.models.Model(inputs=inputs, outputs=outputs)
 
-        q_net.compile(optimizer=tf.optimizers.Adam(learning_rate=0.001),
-                      loss='mse')
-        # q_net.summary()
-        return q_net
+        net.compile(optimizer=tf.optimizers.Adam(learning_rate=0.001),
+                    loss='mse')
+        # net.summary()
+        return net
 
     def remove_illegal(self, action_probs, legal_actions):
         ''' Remove illegal actions and normalize the
@@ -99,25 +98,16 @@ class DqnAgent:
         '''
         state_input = tf.convert_to_tensor(
             [state['hand']+[state['gain']]+state['scores']], dtype=tf.float32)
-        action_q = self.q_net.predict(state_input)
+        action_q = self.net.predict(state_input)
         action_l = self.remove_illegal(
             action_q, state['legal_actions'])
         action = np.argmax(action_l, axis=0)
         action = int(action)
         return action, action_l
 
-    def update_target_network(self):
-        """
-        Updates the current target_q_net with the q_net which brings all the
-        training in the q_net to the target_q_net.
-
-        :return: None
-        """
-        self.target_q_net.set_weights(self.q_net.get_weights())
-
     def save_weight(self):
-        with open('dqn_weights.npy', 'wb') as f:
-            np.save(f, self.q_net.get_weights())
+        with open(SIMPLE_WEIGHTS_FILE, 'wb') as f:
+            np.save(f, self.net.get_weights())
 
     def load_pretrained(self):
         """
@@ -127,14 +117,13 @@ class DqnAgent:
         """
         weights = None
         try:
-            with open('dqn_weights.npy', 'rb') as f:
+            with open(SIMPLE_WEIGHTS_FILE, 'rb') as f:
                 weights = np.load(f, allow_pickle=True)
         except FileNotFoundError:
             print('Starting from scratch no pretrained file found')
         if weights is not None:
             print('Loading previously saved model')
-            self.target_q_net.set_weights(weights)
-            self.q_net.set_weights(weights)
+            self.net.set_weights(weights)
 
     def train(self, batch):
         """
@@ -148,30 +137,12 @@ class DqnAgent:
         state_batch, next_state_batch, action_batch, \
             reward_batch, done_batch = batch
 
-        # current_q = self.q_net(state_batch).numpy()
-        # target_q = np.copy(current_q)
-        # # TODO fix this is does not make sense to calculate this way
-        # next_q = self.target_q_net(next_state_batch).numpy()
-        # max_next_q = np.amax(next_q, axis=1)
-        # for i in range(state_batch.shape[0]):
-        #     # trick to add rewarded wave
-        #     # use reward for first of each batch
-        #     if i == 0 or done_batch[i-1]:
-        #         target_q_val = 10*reward_batch[i]
-        #     else:
-        #         # get the gain or loss water
-        #         plus_wave = state_batch[i][3]
-        #         target_q_val = 10*reward_batch[i] + plus_wave
-        #     if not done_batch[i]:
-        #         # this does not realy make sense
-        #         target_q_val += 0.95 * max_next_q[i]
-        #     target_q[i][action_batch[i]] = target_q_val
         target_q = np.zeros(
             (state_batch.shape[0], self.action_num), dtype=float)
         for i in range(state_batch.shape[0]):
             target_q[i][action_batch[i]] = 1.0
 
-        training_history = self.q_net.fit(
+        training_history = self.net.fit(
             x=state_batch, y=target_q, verbose=0)
         loss = training_history.history['loss']
         return loss

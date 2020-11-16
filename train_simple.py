@@ -5,7 +5,7 @@ This module trains the DQN agent by trial and error. In this module the DQN
 agent will play the game episode by episode, store the gameplay experiences
 and then use the saved gameplay experiences to train the underlying model.
 """
-from dqn_agent import DqnAgent
+from simple_agent import SimpleAgent
 from random_agent import RandomAgent
 from whale.whale import WhaleEnv
 from whale.utils import set_global_seed
@@ -13,9 +13,10 @@ from datetime import datetime
 import numpy as np
 
 EVAL_EPISODES_COUNT = 100
+GAME_COUNT_PER_EPISODE = 20
 
 
-def evaluate_training_result(env, agent):
+def evaluate_training_result(env, agents):
     """
     Evaluates the performance of the current DQN agent by using it to play a
     few episodes of the game and then calculates the average reward it gets.
@@ -26,6 +27,7 @@ def evaluate_training_result(env, agent):
     :return: average reward across episodes
     """
     total_reward = 0.0
+    env.set_agents(agents)
     for i in range(EVAL_EPISODES_COUNT):
         env.reset()
         trajectories, _ = env.run(is_training=True)
@@ -42,7 +44,7 @@ def evaluate_training_result(env, agent):
     return average_reward
 
 
-def collect_gameplay_experiences(env, agent, game_count, winner=True):
+def collect_gameplay_experiences(env, agents, game_count, winner=True):
     """
     Collects gameplay experiences by playing env with the instructions
     produced by agent and stores the gameplay experiences in buffer.
@@ -58,19 +60,21 @@ def collect_gameplay_experiences(env, agent, game_count, winner=True):
     action_batch = []
     reward_batch = []
     done_batch = []
-    for _ in range(0, game_count):
+    env.set_agents(agents)
+    while len(done_batch) < game_count:
         env.reset()
         trajectories, payoffs = env.run(is_training=False)
         winner_id = 0
         if winner:
+            # discard game if no winner
+            if sum(payoffs) < 1:
+                continue
             # get the winning trajectory for training
             for val in payoffs:
                 if val > 0:
                     break
                 winner_id += 1
-            # set value to zero if no one won
-            if winner_id > len(payoffs):
-                winner_id = 0
+
         state_l = []
         next_state_l = []
         action = []
@@ -105,11 +109,7 @@ def train_model(max_episodes=100):
     # Make environment
     env = WhaleEnv(
         config={
-            'allow_step_back': False,
-            'allow_raw_data': False,
-            'single_agent_mode': False,
             'active_player': 0,
-            'record_action': False,
             'seed': 0,
             'env_num': 1,
             'num_players': 5})
@@ -117,25 +117,24 @@ def train_model(max_episodes=100):
     set_global_seed(datetime.utcnow().microsecond)
     # Set up agents
     action_num = 3
-    agent = DqnAgent(dim=1, action_num=action_num, player_num=5)
+    agent = SimpleAgent(action_num=action_num, player_num=5)
     agent_0 = RandomAgent(action_num=action_num)
     agent_1 = RandomAgent(action_num=action_num)
     agent_2 = RandomAgent(action_num=action_num)
     agent_3 = RandomAgent(action_num=action_num)
+    agent_train = RandomAgent(action_num=action_num)
     agents = [agent, agent_0, agent_1, agent_2, agent_3]
+    train_agents = [agent_train, agent_0, agent_1, agent_2, agent_3]
     env.set_agents(agents)
     agent.load_pretrained()
-    UPDATE_TARGET_RATE = 20
-    GAME_COUNT_PER_EPISODE = 20
     min_perf, max_perf = 1.0, 0.0
     for episode_cnt in range(1, max_episodes+1):
         # print(f'{datetime.utcnow()} train ...')
         loss = agent.train(collect_gameplay_experiences(
-            env, agents, GAME_COUNT_PER_EPISODE))
+            env, train_agents, GAME_COUNT_PER_EPISODE))
         # print(f'{datetime.utcnow()} eval  ...')
-        avg_reward = evaluate_training_result(env, agent)
+        avg_reward = evaluate_training_result(env, agents)
         # print(f'{datetime.utcnow()} calc  ...')
-        target_update = episode_cnt % UPDATE_TARGET_RATE == 0
         if avg_reward > max_perf:
             max_perf = avg_reward
             agent.save_weight()
@@ -143,11 +142,9 @@ def train_model(max_episodes=100):
             min_perf = avg_reward
         print(
             '{0:03d}/{1} perf:{2:.2f}(min:{3} max:{4})'
-            'up:{5:1d} loss:{6}'.format(
+            'loss:{5}'.format(
                 episode_cnt, max_episodes, avg_reward, min_perf, max_perf,
-                target_update, loss))
-        if target_update:
-            agent.update_target_network()
+                loss))
     # env.close()
     print('training end')
 

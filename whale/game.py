@@ -2,7 +2,6 @@ from whale.dealer import WhaleDealer as Dealer
 from whale.player import WhalePlayer as Player
 from whale.round import WhaleRound as Round
 
-from copy import deepcopy
 import numpy as np
 
 # inital card per hand
@@ -13,8 +12,7 @@ ACTION_NUM = 3
 
 class WhaleGame(object):
 
-    def __init__(self, num_players, allow_step_back=False):
-        self.allow_step_back = allow_step_back
+    def __init__(self, num_players):
         self.np_random = np.random.RandomState()
         self.num_players = num_players
         self.payoffs = [0 for _ in range(self.num_players)]
@@ -65,28 +63,10 @@ class WhaleGame(object):
                 (int): next plater's id
         '''
 
-        if self.allow_step_back:
-            # First snapshot the current state
-            his_dealer = deepcopy(self.dealer)
-            his_round = deepcopy(self.round)
-            his_players = deepcopy(self.players)
-            self.history.append((his_dealer, his_players, his_round))
-
         self.round.proceed_round(self.players, action)
         player_id = self.round.current_player
         state = self.get_state(player_id)
         return state, player_id
-
-    def step_back(self):
-        ''' Return to the previous state of the game
-
-        Returns:
-            (bool): True if the game steps back successfully
-        '''
-        if not self.history:
-            return False
-        self.dealer, self.players, self.round = self.history.pop()
-        return True
 
     def get_state(self, player_id):
         ''' Return player's state
