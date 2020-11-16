@@ -45,7 +45,11 @@ class DqnAgent:
             action_num,
             activation='relu',
             kernel_initializer='he_uniform')(mid)
+        # normalize
+        outputs = tf.keras.layers.Lambda(
+            lambda x: x / tf.keras.backend.sum(x))(outputs)
         q_net = tf.keras.models.Model(inputs=inputs, outputs=outputs)
+
         q_net.compile(optimizer=tf.optimizers.Adam(learning_rate=0.001),
                       loss='mse')
         # q_net.summary()

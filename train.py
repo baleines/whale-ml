@@ -42,7 +42,7 @@ def evaluate_training_result(env, agent):
     return average_reward
 
 
-def collect_gameplay_experiences(env, agent, game_count):
+def collect_gameplay_experiences(env, agent, game_count, winner=True):
     """
     Collects gameplay experiences by playing env with the instructions
     produced by agent and stores the gameplay experiences in buffer.
@@ -60,13 +60,23 @@ def collect_gameplay_experiences(env, agent, game_count):
     done_batch = []
     for _ in range(0, game_count):
         env.reset()
-        trajectories, _ = env.run(is_training=False)
+        trajectories, payoffs = env.run(is_training=False)
+        winner_id = 0
+        if winner:
+            # get the winning trajectory for training
+            for val in payoffs:
+                if val > 0:
+                    break
+                winner_id += 1
+            # set value to zero if no one won
+            if winner_id > len(payoffs):
+                winner_id = 0
         state_l = []
         next_state_l = []
         action = []
         reward = []
         done = []
-        for state in trajectories[0]:
+        for state in trajectories[winner_id]:
             state_l.append(state[0]['hand'] +
                            [state[0]['gain']]+state[0]['scores'])
             next_state_l.append(
@@ -84,7 +94,7 @@ def collect_gameplay_experiences(env, agent, game_count):
             reward_batch, done_batch)
 
 
-def train_model(max_episodes=10):
+def train_model(max_episodes=100):
     """
     Trains a DQN agent to play the CartPole game by trial and error
 
@@ -116,7 +126,7 @@ def train_model(max_episodes=10):
     env.set_agents(agents)
     agent.load_pretrained()
     UPDATE_TARGET_RATE = 20
-    GAME_COUNT_PER_EPISODE = 2
+    GAME_COUNT_PER_EPISODE = 20
     min_perf, max_perf = 1.0, 0.0
     for episode_cnt in range(1, max_episodes+1):
         # print(f'{datetime.utcnow()} train ...')
