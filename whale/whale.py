@@ -3,13 +3,15 @@ import numpy as np
 from whale.game import WhaleGame as Game
 from whale.utils import encode_hand
 from whale.utils import cards2list
-from whale.utils import reorganize
 import whale.seeding as seeding
 
 # todo inject env super class methods to remove deps with env
 
 
 class WhaleEnv():
+    '''
+        WhaleEnv is used to replay a whale game or a set of whale games
+    '''
 
     def __init__(self, config):
         self.name = 'whale'
@@ -29,15 +31,15 @@ class WhaleEnv():
 
     def _extract_state(self, state):
         hand = encode_hand(state['hand'])
+        score = state['score']
         legal_actions = self._get_legal_actions()
         extracted_state = {'hand': hand,
-                           'gain': state['gain'],
-                           'scores': state['scores'],
+                           'score': score,
                            'legal_actions': legal_actions}
         return extracted_state
 
-    def get_payoffs(self):
-        return np.array(self.game.get_payoffs())
+    def get_wins(self):
+        return self.game.get_wins()
 
     def _get_legal_actions(self):
         return self.game.get_legal_actions()
@@ -72,6 +74,7 @@ class WhaleEnv():
                 (list): A list of trajectories generated from the environment.
                 (list): A list payoffs. Each entry corresponds to one player.
 
+        TODO update this
         Note: The trajectories are 3-dimension list.
               The first dimension is for different players.
               The second dimension is for different transitions.
@@ -82,40 +85,42 @@ class WhaleEnv():
         state, player_id = self.reset()
 
         # Loop to play the game
-        trajectories[player_id].append(state)
+        # trajectories[player_id].append(state)
         while not self.is_over():
-            # Agent plays
-            if not is_training:
-                action, _ = self.agents[player_id].eval_step(state)
-            else:
-                action = self.agents[player_id].step(state)
+            # Agent choose action
+            action = self.agents[player_id].step(state)
 
-            # Environment steps
+            # Agent plays action
             next_state, next_player_id = self.step(action)
             # Save action
-            trajectories[player_id].append(action)
+            # TODO store this a better way
+            trajectories[player_id].append(
+                {'state': state,
+                 'action': action,
+                 'scores': self.game.get_scores(),
+                 'win': False,
+                 'done': False})
 
             # Set the state and player
             state = next_state
             player_id = next_player_id
 
             # Save state.
-            if not self.game.is_over():
-                trajectories[player_id].append(state)
+            # if not self.game.is_over():
+            # trajectories[player_id].append(state)
+
+        wins = self.get_wins()
 
         # Add a final state to all the players
-        # TODO fix this
-        # for player_id in range(self.player_num):
-        #     state = self.get_state(player_id)
-        #     trajectories[player_id].append(state)
+        for player_id in range(self.player_num):
+            state = self.get_state(player_id)
+            trajectories[player_id].append(
+                {'state': state,
+                 'action': None,
+                 'win': wins[player_id],
+                 'done': True})
 
-        # TODO rewrite the payoff system
-        payoffs = self.get_payoffs()
-
-        # Reorganize the trajectories
-        trajectories = reorganize(trajectories, payoffs)
-
-        return trajectories, payoffs
+        return trajectories
 
     def set_agents(self, agents):
         '''
@@ -133,16 +138,7 @@ class WhaleEnv():
         Reset environment in single-agent mode
         Call `_init_game` if not in single agent mode
         '''
-        while True:
-            state, player_id = self.game.init_game()
-            while not player_id == self.active_player:
-                self.timestep += 1
-                action, _ = self.model.agents[player_id].eval_step(
-                    self._extract_state(state))
-                state, player_id = self.game.step(action)
-
-            if not self.game.is_over():
-                break
+        state, player_id = self.game.init_game()
 
         return self._extract_state(state), player_id
 
@@ -182,6 +178,11 @@ class WhaleEnv():
             (numpy.array): The observed state of the player
         '''
         return self._extract_state(self.game.get_state(player_id))
+
+    def get_scores(self):
+        ''' Get the current scores
+        '''
+        self.game.get_scores()
 
     def _seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)

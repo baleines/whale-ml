@@ -5,6 +5,9 @@
 from random_agent import RandomAgent
 from whale.whale import WhaleEnv
 from whale.utils import set_global_seed
+import pprint
+pp = pprint.PrettyPrinter(indent=4)
+p = pp.pprint
 
 # Make environment
 env = WhaleEnv(
@@ -28,14 +31,12 @@ env.set_agents([agent_0, agent_1, agent_2, agent_3])
 for episode in range(episode_num):
 
     # Generate data from the environment
-    trajectories, _ = env.run(is_training=False)
+    trajectories = env.run(is_training=False)
 
     # Print out the trajectories
     print('\nEpisode {}'.format(episode))
     i = 0
     for trajectory in trajectories:
         print('\tPlayer {}'.format(i))
-        for ts in trajectory:
-            print('\tState: {}, Action: {}, Reward: {}, Next State: {}, Done: {}'.
-                  format(ts[0], ts[1], ts[2], ts[3], ts[4]))
+        p(trajectory)
         i += 1

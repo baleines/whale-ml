@@ -1,5 +1,7 @@
 class WhaleCard(object):
-
+    '''
+    Represents availailable cards in the game.
+    '''
     info = {'type':  ['water', 'wave', "double_wave"],
             }
 

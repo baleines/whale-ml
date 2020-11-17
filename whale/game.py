@@ -11,11 +11,13 @@ ACTION_NUM = 3
 
 
 class WhaleGame(object):
+    '''
+    Represents a whale game.
+    '''
 
     def __init__(self, num_players):
         self.np_random = np.random.RandomState()
         self.num_players = num_players
-        self.payoffs = [0 for _ in range(self.num_players)]
 
     def init_game(self):
         ''' Initialize players and state
@@ -26,13 +28,13 @@ class WhaleGame(object):
                 (dict): The first state in one game
                 (int): Current player's id
         '''
-        # Initalize payoffs
-        self.payoffs = [0 for _ in range(self.num_players)]
+        # Initalize wins
+        self.wins = [False for _ in range(self.num_players)]
 
         # Initialize a dealer that can deal cards
         self.dealer = Dealer(self.np_random)
 
-        # Initialize four players to play the game
+        # Initialize num_players players to play the game
         self.players = [Player(i, self.np_random)
                         for i in range(self.num_players)]
 
@@ -42,9 +44,6 @@ class WhaleGame(object):
 
         # Initialize a Round
         self.round = Round(self.dealer, self.num_players, self.np_random)
-
-        # Save the hisory for stepping back to the last state.
-        self.history = []
 
         player_id = self.round.current_player
         state = self.get_state(player_id)
@@ -82,16 +81,16 @@ class WhaleGame(object):
         state['current_player'] = self.round.current_player
         return state
 
-    def get_payoffs(self):
-        ''' Return the payoffs of the game
+    def get_wins(self):
+        ''' Return the wins of the game
 
         Returns:
-            (list): Each entry corresponds to the payoff of one player
+            (list): Each entry corresponds to the win state of one player
         '''
         winner = self.round.winner
         if winner is not None and len(winner) == 1:
-            self.payoffs[winner[0]] = 1
-        return self.payoffs
+            self.wins[winner[0]] = True
+        return self.wins
 
     def get_legal_actions(self):
         ''' Return the legal actions for current player
@@ -110,6 +109,9 @@ class WhaleGame(object):
             (int): The number of players in the game
         '''
         return self.num_players
+
+    def get_scores(self):
+        return self.round.get_scores(self.players)
 
     @staticmethod
     def get_action_num():

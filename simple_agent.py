@@ -33,12 +33,15 @@ class SimpleAgent:
 
         :return: Q network
         """
-        # card counts + gain for this round + scores for this round
-        shape_size = 3 + 1 + player_num
+        # card counts + score for this round
+        shape_size = 3 + 1
         inputs = tf.keras.layers.Input(shape=(shape_size,))
         mid = tf.keras.layers.Dense(
             32,
             activation='relu')(inputs)
+        mid = tf.keras.layers.Dense(
+            32,
+            activation='relu')(mid)
         outputs = tf.keras.layers.Dense(
             action_num,
             activation='linear')(mid)
@@ -97,8 +100,9 @@ class SimpleAgent:
             probs (list): a list of probabilies
         '''
         state_input = tf.convert_to_tensor(
-            [state['hand']+[state['gain']]+state['scores']], dtype=tf.float32)
-        action_q = self.net.predict(state_input)
+            [state['hand']+[state['score']]],
+            dtype=tf.float32)
+        action_q = self.net(state_input)
         action_l = self.remove_illegal(
             action_q, state['legal_actions'])
         action = np.argmax(action_l, axis=0)
@@ -134,13 +138,12 @@ class SimpleAgent:
         :return: training loss
         """
 
-        state_batch, next_state_batch, action_batch, \
+        state_batch, action_batch, \
             reward_batch, done_batch = batch
-
-        target_q = np.zeros(
-            (state_batch.shape[0], self.action_num), dtype=float)
+        target_q = np.full(
+            (state_batch.shape[0], self.action_num), 0.25, dtype=float)
         for i in range(state_batch.shape[0]):
-            target_q[i][action_batch[i]] = 1.0
+            target_q[i][action_batch[i]] = 0.5
 
         training_history = self.net.fit(
             x=state_batch, y=target_q, verbose=0)

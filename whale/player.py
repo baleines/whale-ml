@@ -11,7 +11,6 @@ class WhalePlayer(object):
         self.player_id = player_id
         self.hand = []
         self.water = 0
-        self.gain = 0
 
     def get_player_id(self):
         ''' Return the id of the player

@@ -1,53 +1,20 @@
-"""
-Training loop
 
-This module trains the DQN agent by trial and error. In this module the DQN
-agent will play the game episode by episode, store the gameplay experiences
-and then use the saved gameplay experiences to train the underlying model.
-"""
 from dqn_agent import DqnAgent
 from random_agent import RandomAgent
 from whale.whale import WhaleEnv
 from whale.utils import set_global_seed
 from datetime import datetime
+import pprint
 
-EVAL_EPISODES_COUNT = 100
+pp = pprint.PrettyPrinter(indent=4)
+p = pp.pprint
 
 
-def evaluate_training_result(env, agent):
+def run_model(game_count=1):
     """
-    Evaluates the performance of the current DQN agent by using it to play a
-    few episodes of the game and then calculates the average reward it gets.
-    The higher the average reward is the better the DQN agent performs.
-
-    :param env: the game environment
-    :param agent: the DQN agent
-    :return: average reward across episodes
-    """
-    total_reward = 0.0
-    for i in range(EVAL_EPISODES_COUNT):
-        trajectories, _ = env.run(is_training=True)
-        # calculate reward
-        episode_reward = 0.0
-        for ts in trajectories[0]:
-            # print(
-            #     'State: {}, Action: {}, Reward: {}, Next State: {}, Done: {}'.
-            #     format(ts[0], ts[1], ts[2], ts[3], ts[4]))
-            episode_reward += ts[2]
-        total_reward += episode_reward
-
-    average_reward = total_reward / EVAL_EPISODES_COUNT
-    return average_reward
-
-
-def run_model():
-    """
-    Trains a DQN agent to play the CartPole game by trial and error
-
-    :return: None
+    run model for game_count games
     """
 
-    # buffer = ReplayBuffer()
     # Make environment
     env = WhaleEnv(
         config={
@@ -59,7 +26,7 @@ def run_model():
     set_global_seed(datetime.utcnow().microsecond)
     # Set up agents
     action_num = 3
-    agent = DqnAgent(dim=1, action_num=action_num, player_num=5)
+    agent = DqnAgent(action_num=action_num, player_num=5)
     agent_0 = RandomAgent(action_num=action_num)
     agent_1 = RandomAgent(action_num=action_num)
     agent_2 = RandomAgent(action_num=action_num)
@@ -67,11 +34,18 @@ def run_model():
     agents = [agent, agent_0, agent_1, agent_2, agent_3]
     env.set_agents(agents)
     agent.load_pretrained()
+    for game in range(game_count):
 
-    avg_reward = evaluate_training_result(env, agent)
-    print(
-        'perf:{0:.2f} on {1} games'.format(avg_reward, EVAL_EPISODES_COUNT))
-    print('run end')
+        # Generate data from the environment
+        trajectories = env.run(is_training=False)
+
+        # Print out the trajectories
+        print('\nEpisode {}'.format(game))
+        i = 0
+        for trajectory in trajectories:
+            print('\tPlayer {}'.format(i))
+            p(trajectory[-1])
+            i += 1
 
 
-run_model()
+run_model(game_count=1)

@@ -66,7 +66,7 @@ def hand2dict(hand):
 
 def encode_hand(hand):
     ''' Encode hand and represerve it into plane
-
+    TODO move this function to a better place
     Args:
         hand (list): list of string of hand's card
 
@@ -81,37 +81,6 @@ def encode_hand(hand):
         if hand.get(card[0]):
             plane[card[1]] = hand[card[0]]
     return plane
-
-
-# TODO remove this and use direct model
-def reorganize(trajectories, payoffs):
-    ''' Reorganize the trajectory to make it RL friendly
-
-    Args:
-        trajectory (list): A list of trajectories
-        payoffs (list): A list of payoffs for the players.
-        Each entry corresponds to one player
-
-    Returns:
-        (list): A new trajectories that can be fed into RL algorithms.
-
-    '''
-    player_num = len(trajectories)
-    new_trajectories = [[] for _ in range(player_num)]
-
-    for player in range(player_num):
-        for i in range(0, len(trajectories[player])-2, 2):
-            if i == len(trajectories[player])-3:
-                reward = payoffs[player]
-                done = True
-            else:
-                reward, done = 0, False
-            transition = trajectories[player][i:i+3].copy()
-            transition.insert(2, reward)
-            transition.append(done)
-
-            new_trajectories[player].append(transition)
-    return new_trajectories
 
 
 def set_global_seed(seed):

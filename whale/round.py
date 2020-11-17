@@ -8,6 +8,9 @@ DOUBLE_WATER = 2
 
 
 class WhaleRound(object):
+    '''
+    Represents a round in the game.
+    '''
 
     def __init__(self, dealer, num_players, np_random):
         ''' Initialize the round class
@@ -92,23 +95,17 @@ class WhaleRound(object):
         state = {}
         player = players[player_id]
         state['hand'] = cards2list(player.hand)
-        water_levels = [player.water]
-        for player in players:
-            if player.player_id != player_id:
-                water_levels.append(player.water)
-        state['scores'] = water_levels
-        state['gain'] = player.gain
         state['played_cards'] = cards2list(self.played_cards)
-        others_hand = []
-        for player in players:
-            if player.player_id != player_id:
-                others_hand.extend(player.hand)
-        state['others_hand'] = cards2list(others_hand)
         state['legal_actions'] = self.get_legal_actions(players, player_id)
-        state['card_num'] = []
-        for player in players:
-            state['card_num'].append(len(player.hand))
+        state['score'] = player.water
         return state
+
+    @staticmethod
+    def get_scores(players):
+        water_levels = []
+        for player in players:
+            water_levels.append(player.water)
+        return water_levels
 
     def replace_deck(self):
         ''' Add cards have been played to deck
@@ -123,7 +120,6 @@ class WhaleRound(object):
             self.replace_deck()
         card = self.dealer.deck.pop()
         players[self.current_player].hand.append(card)
-        players[self.current_player].gain = 0
         # print(
         #     f'{self.current_player}:draw:{players[self.current_player].hand}')
 
@@ -137,14 +133,12 @@ class WhaleRound(object):
             player.water += 1
             # recycle wave but not water
             self.played_cards.append(WhaleCard('wave'))
-            player.gain = 1
             return
         elif action == DOUBLE_WATER:
             self._remove_hand(player, 'double_wave')
             self._remove_hand(player, 'water')
             self._remove_hand(player, 'water')
             player.water += 2
-            player.gain = 2
             # recycle wave but not water
             self.played_cards.append(WhaleCard('double_wave'))
             return

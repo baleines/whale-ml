@@ -11,7 +11,7 @@ class DqnAgent:
     a state-action pair.
     """
 
-    def __init__(self, dim, action_num, player_num):
+    def __init__(self, action_num, player_num):
         ''' Initilize the random agent
 
         Args:
@@ -34,12 +34,15 @@ class DqnAgent:
 
         :return: Q network
         """
-        # card counts + gain for this round + scores for this round
-        shape_size = 3 + 1 + player_num
+        # card counts + score for this round
+        shape_size = 3 + 1
         inputs = tf.keras.layers.Input(shape=(shape_size,))
         mid = tf.keras.layers.Dense(
             32,
             activation='relu')(inputs)
+        mid = tf.keras.layers.Dense(
+            32,
+            activation='relu')(mid)
         outputs = tf.keras.layers.Dense(
             action_num,
             activation='linear')(mid)
@@ -98,8 +101,9 @@ class DqnAgent:
             probs (list): a list of probabilies
         '''
         state_input = tf.convert_to_tensor(
-            [state['hand']+[state['gain']]+state['scores']], dtype=tf.float32)
-        action_q = self.q_net.predict(state_input)
+            [state['hand']+[state['score']]],
+            dtype=tf.float32)
+        action_q = self.q_net(state_input)
         action_l = self.remove_illegal(
             action_q, state['legal_actions'])
         action = np.argmax(action_l, axis=0)
@@ -145,7 +149,7 @@ class DqnAgent:
         :return: training loss
         """
 
-        state_batch, next_state_batch, action_batch, \
+        state_batch, action_batch, \
             reward_batch, done_batch = batch
 
         # current_q = self.q_net(state_batch).numpy()
