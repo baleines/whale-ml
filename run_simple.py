@@ -2,7 +2,7 @@
 from simple_agent import SimpleAgent
 from random_agent import RandomAgent
 from whale.whale import WhaleEnv
-from whale.utils import set_global_seed
+
 from datetime import datetime
 import pprint
 
@@ -19,11 +19,9 @@ def run_model(game_count=1):
     env = WhaleEnv(
         config={
             'active_player': 0,
-            'seed': 0,
+            'seed': datetime.utcnow().microsecond,
             'env_num': 1,
             'num_players': 5})
-    # Set a global seed using time
-    set_global_seed(datetime.utcnow().microsecond)
     # Set up agents
     action_num = 3
     agent = SimpleAgent(action_num=action_num, player_num=5)
@@ -44,7 +42,7 @@ def run_model(game_count=1):
         i = 0
         for trajectory in trajectories:
             print('\tPlayer {}'.format(i))
-            p(trajectory[-1])
+            [print(t) for t in trajectory]
             i += 1
 
 

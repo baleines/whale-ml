@@ -1,5 +1,25 @@
 
-from whale.utils import init_deck
+from whale.card import WhaleCard as Card
+
+
+def init_deck():
+    ''' Generate whale deck of 108 cards
+    '''
+    deck = []
+
+    # init wave cards
+    for _ in range(1, 32):
+        deck.append(Card('wave'))
+
+    # init double_wave cards
+    for _ in range(1, 8):
+        deck.append(Card('double_wave'))
+
+    # init water cards
+    for _ in range(1, 40):
+        deck.append(Card('water'))
+
+    return deck
 
 
 class WhaleDealer(object):

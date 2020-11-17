@@ -4,7 +4,8 @@
 
 from random_agent import RandomAgent
 from whale.whale import WhaleEnv
-from whale.utils import set_global_seed
+
+from datetime import datetime
 import pprint
 pp = pprint.PrettyPrinter(indent=4)
 p = pp.pprint
@@ -13,13 +14,10 @@ p = pp.pprint
 env = WhaleEnv(
     config={
         'active_player': 0,
-        'seed': 0,
+        'seed': datetime.utcnow().microsecond,
         'env_num': 1,
         'num_players': 4})
 episode_num = 1
-
-# Set a global seed
-set_global_seed(0)
 
 # Set up agents
 agent_0 = RandomAgent(action_num=env.action_num)

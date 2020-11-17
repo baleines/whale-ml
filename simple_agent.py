@@ -141,11 +141,10 @@ class SimpleAgent:
         state_batch, action_batch, \
             reward_batch, done_batch = batch
         target_q = np.full(
-            (state_batch.shape[0], self.action_num), 0.25, dtype=float)
+            (state_batch.shape[0], self.action_num), 0.2, dtype=float)
         for i in range(state_batch.shape[0]):
-            target_q[i][action_batch[i]] = 0.5
-
-        training_history = self.net.fit(
-            x=state_batch, y=target_q, verbose=0)
+            target_q[i][action_batch[i]] = 0.6
+        training_history = self.net.fit(epochs=10,
+                                        x=state_batch, y=target_q, verbose=0)
         loss = training_history.history['loss']
         return loss

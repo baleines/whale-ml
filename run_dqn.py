@@ -2,7 +2,7 @@
 from dqn_agent import DqnAgent
 from random_agent import RandomAgent
 from whale.whale import WhaleEnv
-from whale.utils import set_global_seed
+
 from datetime import datetime
 import pprint
 
@@ -19,11 +19,9 @@ def run_model(game_count=1):
     env = WhaleEnv(
         config={
             'active_player': 0,
-            'seed': 0,
+            'seed': datetime.utcnow().microsecond,
             'env_num': 1,
             'num_players': 5})
-    # Set a global seed using time
-    set_global_seed(datetime.utcnow().microsecond)
     # Set up agents
     action_num = 3
     agent = DqnAgent(action_num=action_num, player_num=5)

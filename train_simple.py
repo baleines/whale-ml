@@ -8,7 +8,7 @@ and then use the saved gameplay experiences to train the underlying model.
 from simple_agent import SimpleAgent
 from no_draw_agent import NoDrawAgent
 from whale.whale import WhaleEnv
-from whale.utils import set_global_seed
+
 from datetime import datetime
 from train import collect_gameplay_experiences, evaluate_training_result
 
@@ -28,11 +28,9 @@ def train_model(max_episodes=100):
     env = WhaleEnv(
         config={
             'active_player': 0,
-            'seed': 0,
+            'seed': datetime.utcnow().microsecond,
             'env_num': 1,
             'num_players': 5})
-    # Set a global seed using time
-    set_global_seed(datetime.utcnow().microsecond)
     # Set up agents
     action_num = 3
     agent = SimpleAgent(action_num=action_num, player_num=5)

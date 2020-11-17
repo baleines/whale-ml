@@ -1,34 +1,10 @@
 from pathlib import Path
-import numpy as np
-
-
-from whale.card import WhaleCard as Card
 
 # Read required docs
 ROOT_PATH = Path(__file__).parent
 
 # a map of trait to its index
 CARD_MAP = {'water': 0, 'wave': 1, 'double_wave': 2}
-
-
-def init_deck():
-    ''' Generate whale deck of 108 cards
-    '''
-    deck = []
-
-    # init wave cards
-    for _ in range(1, 32):
-        deck.append(Card('wave'))
-
-    # init double_wave cards
-    for _ in range(1, 8):
-        deck.append(Card('double_wave'))
-
-    # init water cards
-    for _ in range(1, 40):
-        deck.append(Card('water'))
-
-    return deck
 
 
 def cards2list(cards):
@@ -81,25 +57,3 @@ def encode_hand(hand):
         if hand.get(card[0]):
             plane[card[1]] = hand[card[0]]
     return plane
-
-
-def set_global_seed(seed):
-    ''' Set the global see for reproducing results
-
-    Args:
-        seed (int): The seed
-
-    Note: If using other modules with randomness, they also need to be seeded
-    '''
-    if seed is not None:
-        import subprocess
-        import sys
-
-        reqs = subprocess.check_output([sys.executable, '-m', 'pip', 'freeze'])
-        installed_packages = [r.decode().split('==')[0] for r in reqs.split()]
-        if 'tensorflow' in installed_packages:
-            import tensorflow as tf
-            tf.random.set_seed(seed)
-        np.random.seed(seed)
-        import random
-        random.seed(seed)

@@ -79,7 +79,7 @@ class WhaleRound(object):
         if double_wave >= 1 and water >= 2:
             legal_actions.append(DOUBLE_WATER)
 
-        if wave >= 1 and water >= 0:
+        if wave >= 1 and water >= 1:
             legal_actions.append(SINGLE_WATER)
 
         # print(f'{player_id}:legal_actions:{legal_actions}')
