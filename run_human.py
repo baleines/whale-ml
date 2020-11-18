@@ -3,6 +3,7 @@
 
 
 from random_agent import RandomAgent
+from human_agent import HumanAgent
 from whale.whale import WhaleEnv
 
 from datetime import datetime
@@ -19,8 +20,9 @@ env = WhaleEnv(
         'num_players': 4})
 episode_num = 1
 
+
 # Set up agents
-agent_0 = RandomAgent(action_num=env.action_num)
+agent_0 = HumanAgent(action_num=env.action_num)
 agent_1 = RandomAgent(action_num=env.action_num)
 agent_2 = RandomAgent(action_num=env.action_num)
 agent_3 = RandomAgent(action_num=env.action_num)
@@ -36,5 +38,5 @@ for episode in range(episode_num):
     i = 0
     for trajectory in trajectories:
         print('\tPlayer {}'.format(i))
-        p(trajectory)
+        p(trajectory[-1])
         i += 1
