@@ -8,7 +8,7 @@ This repo is where I put my ml experiments to improve my game rules using ML.
 ## deps
 
 ```
-pip install -r requierments.txt
+pip install -r requirements.txt
 ```
 
 ## tests
